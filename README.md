@@ -15,6 +15,10 @@ Pre-requisites
 "ECTools.py" requires numpy, scipy, pandas, and matplotlib.
 Besides abovementioned packages, "ECTools_GUI.py" requires PyQt4. 
 
+Binary for Windows
+------------------
+User can find binary (exe) file in the folder named "dist".
+
 Author
 ------
 Da Pan
