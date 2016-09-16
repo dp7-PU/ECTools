@@ -1,0 +1,29 @@
+base_time: 2016-01-01T00:00
+sonic_head_direction: 265.0
+file_type: csv
+despike_lim: 3.0, 20.0, 3.0, 1.0, 1.0, 1.0, 3.0, 0.5, 0.2
+despike_method: constant
+prefix: NH3
+T_cal: 293.0
+target_gas: NH3
+col_names: Time, peak_idx, 2f_peak, raw_NH3, 1f_peak, intensity, u, v, w, c, CO2, H2O, p
+sonic_time_offset: 0.0
+spec_corr_file: C:\Users\pdphy\PycharmProjects\QCLAS\NH3_correction.csv
+p_cal: 74.0
+t_start: 2016-08-16T00:00
+alpha_v: 2.75
+QCLThold: 0.3
+t_end: 2016-08-18T00:00
+TOA5_name: None
+z: 3.0
+d: 0.3
+QCLPeakThold: 10
+lag_lim: 30
+show_lag: True
+isTOA5: False
+save_dir: C:\Users\pdphy\PycharmProjects\NH3EC2016
+QCLPeakLoc: 29
+isLI7500: True
+dir: C:\Users\pdphy\Documents\Research\NH3EC2016\
+caliOffset: 7.1
+caliSlope: 0.9
