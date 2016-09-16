@@ -30,6 +30,9 @@ Edited Dates
 
 07/20/2016:
     Added time realignment ("time_realign") using pandas combine_first function.
+    
+08/20/2016:
+    Added diurnaly composite analysis for long-period data plotting.  
 
 
 """
