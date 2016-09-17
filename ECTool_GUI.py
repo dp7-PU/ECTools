@@ -586,9 +586,8 @@ class AppWindow(QtGui.QMainWindow):
         target_gas = str(self.QCLGasCombo.currentText())
 
         # Set time interval
-        t_intv = np.array([str(self.startTimeStr.text()),
-                           str(self.endTimeStr.text())],
-                          dtype='datetime64')
+        t_intv = pd.to_datetime([str(self.startTimeStr.text()),
+                                 str(self.endTimeStr.text())])
 
         self.statusBox.setText('Start calculation:\n')
         self.statusBox.moveCursor(QtGui.QTextCursor.End)
@@ -630,10 +629,10 @@ class AppWindow(QtGui.QMainWindow):
                                                       + self.config['file_type'])
 
         col_names = self.config['col_names']
-        base_time = np.datetime64(self.config['base_time'])
+        base_time = self.config['base_time']
 
         raw_data = ECTools.read_data_pd(files, col_names, base_time,
-                                        delimiter=delimiter, time_zone=-8)
+                                        delimiter=delimiter, time_zone=-4)
 
         # Dealing with no LI7500 case.
         if not self.isLI7500Radio.isChecked():
