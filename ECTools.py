@@ -150,7 +150,6 @@ def get_files(dir, prefix, tInterval, date_fmt='(\d+-\d+-\d+-T\d+)\.csv'):
     fNames = os.listdir(os.path.abspath(dir))
     outFName = []  # output file names
     dateTime = []
-    tInterval = np.array(tInterval, dtype='datetime64')
     for file in fNames:
         m = re.match(prefix + date_fmt,
                      file)  # match file name pattern
@@ -159,7 +158,9 @@ def get_files(dir, prefix, tInterval, date_fmt='(\d+-\d+-\d+-T\d+)\.csv'):
                 datetimestr = m.group(1)[:-2] + ':' + m.group(1)[-2:]
                 datetimestr = datetimestr.replace('-T', 'T')  # Modify datatimestr
 
-                tmp_dateTime = np.datetime64(datetimestr)
+                tmp_dateTime = pd.to_datetime(datetimestr)
+                print tInterval
+                print tmp_dateTime
                 if (tInterval[0] < tmp_dateTime) & (tInterval[1] > tmp_dateTime):
                     outFName.append(os.path.abspath(dir) + '\\' + file)
                     dateTime.append(tmp_dateTime)
@@ -208,8 +209,8 @@ def read_data_pd(f_names, col_names, base_time, delimiter=',', skiprows=5, \
 
         data = pd.concat([data, tmp_df], axis=0)
 
-    data[time_col] = pd.to_timedelta(data[time_col], unit='s').values + \
-                     np.datetime64(base_time) + np.timedelta64(time_zone,
+    data[time_col] = pd.to_timedelta(data[time_col], unit='s') + \
+                     pd.to_datetime(base_time) + pd.to_timedelta(time_zone,
                                                                'h')
 
     data.set_index(time_col, drop=False, inplace=True)

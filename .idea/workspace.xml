@@ -1,0 +1,871 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="8fd7990e-f0df-46ca-af9b-9310f178686a" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/ECTool_GUI.spec" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/CalcEC_NH3_config.txt" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/ECTool_GUI.exe" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/ECTool_GUI.exe" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/vector_ar/data/e6.dat" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/vector_ar/data/e6.dat" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/ECTool_GUI.exe.manifest" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/ECTool_GUI.exe.manifest" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/Include/pyconfig.h" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/Include/pyconfig.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/Microsoft.VC90.CRT.manifest" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/Microsoft.VC90.CRT.manifest" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/Microsoft.VC90.MFC.manifest" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/Microsoft.VC90.MFC.manifest" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/defaultSettings.txt" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/defaultSettings.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/mpl-data/matplotlibrc" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/mpl-data/matplotlibrc" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/anes96/anes96.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/anes96/anes96.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/cancer/cancer.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/cancer/cancer.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/ccard/ccard.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/ccard/ccard.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/co2/co2.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/co2/co2.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/committee/committee.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/committee/committee.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/copper/copper.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/copper/copper.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/cpunish/cpunish.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/cpunish/cpunish.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/elnino/elnino.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/elnino/elnino.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/engel/engel.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/engel/engel.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/fair/fair.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/fair/fair.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/grunfeld/grunfeld.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/grunfeld/grunfeld.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/heart/heart.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/heart/heart.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/longley/longley.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/longley/longley.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/macrodata/macrodata.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/macrodata/macrodata.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/modechoice/modechoice.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/modechoice/modechoice.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/nile/nile.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/nile/nile.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/randhie/randhie.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/randhie/randhie.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/scotland/scotvote.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/scotland/scotvote.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/spector/spector.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/spector/spector.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/stackloss/stackloss.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/stackloss/stackloss.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/star98/star98.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/star98/star98.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/statecrime/statecrime.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/statecrime/statecrime.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/strikes/strikes.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/strikes/strikes.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/sunspots/sunspots.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/datasets/sunspots/sunspots.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/discrete/tests/results/mn_logit_summary.txt" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/discrete/tests/results/mn_logit_summary.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/discrete/tests/results/mnlogit_resid.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/discrete/tests/results/mnlogit_resid.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/discrete/tests/results/nbinom_resids.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/discrete/tests/results/nbinom_resids.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/discrete/tests/results/phat_mnlogit.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/discrete/tests/results/phat_mnlogit.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/discrete/tests/results/poisson_resid.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/discrete/tests/results/poisson_resid.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/discrete/tests/results/predict_prob_poisson.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/discrete/tests/results/predict_prob_poisson.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/discrete/tests/results/ships.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/discrete/tests/results/ships.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/discrete/tests/results/yhat_mnlogit.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/discrete/tests/results/yhat_mnlogit.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/discrete/tests/results/yhat_poisson.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/discrete/tests/results/yhat_poisson.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/duration/tests/results/survival_data_1000_10.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/duration/tests/results/survival_data_1000_10.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/duration/tests/results/survival_data_100_5.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/duration/tests/results/survival_data_100_5.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/duration/tests/results/survival_data_20_1.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/duration/tests/results/survival_data_20_1.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/duration/tests/results/survival_data_50_1.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/duration/tests/results/survival_data_50_1.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/duration/tests/results/survival_data_50_2.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/duration/tests/results/survival_data_50_2.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/epil.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/epil.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/gee_linear_1.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/gee_linear_1.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/gee_logistic_1.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/gee_logistic_1.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/gee_nested_linear_1.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/gee_nested_linear_1.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/gee_nominal_1.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/gee_nominal_1.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/gee_ordinal_1.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/gee_ordinal_1.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/gee_poisson_1.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/gee_poisson_1.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/igaussident_resids.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/igaussident_resids.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/inv_gaussian.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/inv_gaussian.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/iris.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/iris.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/medparlogresids.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/medparlogresids.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/stata_cancer_glm.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/stata_cancer_glm.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/stata_lbw_glm.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/stata_lbw_glm.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/stata_medpar1_glm.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/genmod/tests/results/stata_medpar1_glm.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/nonparametric/tests/results/results_kde.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/nonparametric/tests/results/results_kde.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/nonparametric/tests/results/results_kde_fft.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/nonparametric/tests/results/results_kde_fft.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/nonparametric/tests/results/results_kde_univ_weights.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/nonparametric/tests/results/results_kde_univ_weights.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/nonparametric/tests/results/results_kde_weights.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/nonparametric/tests/results/results_kde_weights.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/nonparametric/tests/results/results_kernel_regression.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/nonparametric/tests/results/results_kernel_regression.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/nonparametric/tests/results/test_lowess_delta.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/nonparametric/tests/results/test_lowess_delta.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/nonparametric/tests/results/test_lowess_frac.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/nonparametric/tests/results/test_lowess_frac.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/nonparametric/tests/results/test_lowess_iter.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/nonparametric/tests/results/test_lowess_iter.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/nonparametric/tests/results/test_lowess_simple.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/nonparametric/tests/results/test_lowess_simple.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lasso_data.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lasso_data.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/leverage_influence_ols_nostars.txt" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/leverage_influence_ols_nostars.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme00.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme00.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme01.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme01.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme02.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme02.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme03.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme03.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme04.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme04.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme05.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme05.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme06.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme06.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme07.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme07.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme08.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme08.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme09.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme09.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme10.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme10.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme11.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/regression/tests/results/lme11.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/sandbox/regression/tests/racd10data_with_transformed.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/sandbox/regression/tests/racd10data_with_transformed.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/stats/libqsturng/CH.r" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/stats/libqsturng/CH.r" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/stats/libqsturng/LICENSE.txt" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/stats/libqsturng/LICENSE.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/stats/libqsturng/tests/bootleg.dat" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/stats/libqsturng/tests/bootleg.dat" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/stats/tests/results/bootleg.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/stats/tests/results/bootleg.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/stats/tests/results/influence_lsdiag_R.json" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/stats/tests/results/influence_lsdiag_R.json" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/stats/tests/results/influence_measures_R.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/stats/tests/results/influence_measures_R.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/stats/tests/results/influence_measures_bool_R.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/stats/tests/results/influence_measures_bool_R.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/stats/tests/test_data.txt" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/stats/tests/test_data.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tests/results/cancer_resids.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tests/results/cancer_resids.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tests/results/cancerdata.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tests/results/cancerdata.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tests/results/cancerident_resids.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tests/results/cancerident_resids.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/ARMLEConstantPredict.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/ARMLEConstantPredict.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/AROLSConstantPredict.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/AROLSConstantPredict.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/AROLSNoConstantPredict.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/AROLSNoConstantPredict.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/arima111_forecasts.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/arima111_forecasts.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/arima212_forecast.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/arima212_forecast.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/resids_css_c.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/resids_css_c.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/resids_css_nc.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/resids_css_nc.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/resids_exact_c.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/resids_exact_c.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/resids_exact_nc.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/resids_exact_nc.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/results_ar_forecast_mle_dynamic.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/results_ar_forecast_mle_dynamic.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/results_arima_exog_forecasts_css.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/results_arima_exog_forecasts_css.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/results_arima_exog_forecasts_mle.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/results_arima_exog_forecasts_mle.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/results_arima_forecasts.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/results_arima_forecasts.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/results_arima_forecasts_all_css.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/results_arima_forecasts_all_css.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/results_arima_forecasts_all_css_diff.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/results_arima_forecasts_all_css_diff.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/results_arima_forecasts_all_mle.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/results_arima_forecasts_all_mle.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/results_arima_forecasts_all_mle_diff.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/results_arima_forecasts_all_mle_diff.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/results_arma_forecasts.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/results_arma_forecasts.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/results_corrgram.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/results_corrgram.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/y_arma_data.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/y_arma_data.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/yhat_css_c.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/yhat_css_c.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/yhat_css_nc.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/yhat_css_nc.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/yhat_exact_c.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/yhat_exact_c.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/yhat_exact_nc.csv" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/tests/results/yhat_exact_nc.csv" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/vector_ar/data/e1.dat" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/vector_ar/data/e1.dat" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/vector_ar/data/e2.dat" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/vector_ar/data/e2.dat" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/vector_ar/data/e3.dat" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/vector_ar/data/e3.dat" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/vector_ar/data/e4.dat" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/vector_ar/data/e4.dat" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/vector_ar/data/e5.dat" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/statsmodels/tsa/vector_ar/data/e5.dat" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dist/ECTool_GUI/tk/pkgIndex.tcl" afterPath="$PROJECT_DIR$/dist/ECTool_GUI/tk/pkgIndex.tcl" />
+    </list>
+    <ignored path="ECTools.iws" />
+    <ignored path=".idea/workspace.xml" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="TRACKING_ENABLED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CreatePatchCommitExecutor">
+    <option name="PATCH_PATH" value="" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
+  <component name="FavoritesManager">
+    <favorites_list name="ECTools" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file leaf-file-name="ECTool_GUI.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/ECTool_GUI.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="359">
+              <caret line="625" column="42" selection-start-line="625" selection-start-column="42" selection-end-line="625" selection-end-column="42" />
+              <folding>
+                <element signature="e#424#1636#0" expanded="false" />
+                <element signature="e#544#1636#0" expanded="false" />
+                <element signature="e#852#906#0" expanded="false" />
+                <element signature="e#1324#1355#0" expanded="false" />
+                <element signature="e#1720#1966#0" expanded="false" />
+                <element signature="e#1998#2424#0" expanded="false" />
+                <element signature="e#2466#2543#0" expanded="false" />
+                <element signature="e#2578#3700#0" expanded="false" />
+                <element signature="e#3741#8280#0" expanded="false" />
+                <element signature="e#6362#6455#0" expanded="false" />
+                <element signature="e#8316#8477#0" expanded="false" />
+                <element signature="e#8516#8764#0" expanded="false" />
+                <element signature="e#8796#8949#0" expanded="false" />
+                <element signature="e#8983#9138#0" expanded="false" />
+                <element signature="e#9175#9250#0" expanded="false" />
+                <element signature="e#9291#9431#0" expanded="false" />
+                <element signature="e#9467#9544#0" expanded="false" />
+                <element signature="e#9598#12001#0" expanded="false" />
+                <element signature="e#12036#12107#0" expanded="false" />
+                <element signature="e#12143#12214#0" expanded="false" />
+                <element signature="e#12252#12680#0" expanded="false" />
+                <element signature="e#12724#12819#0" expanded="false" />
+                <element signature="e#12855#13310#0" expanded="false" />
+                <element signature="e#13352#13445#0" expanded="false" />
+                <element signature="e#13489#13563#0" expanded="false" />
+                <element signature="e#13605#13682#0" expanded="false" />
+                <element signature="e#13719#15699#0" expanded="false" />
+                <element signature="e#15746#15823#0" expanded="false" />
+                <element signature="e#15876#23170#0" expanded="false" />
+                <element signature="e#23945#24028#0" expanded="false" />
+                <element signature="e#24083#24692#0" expanded="false" />
+                <element signature="e#24902#24985#0" expanded="false" />
+                <element signature="e#25680#25765#0" expanded="false" />
+                <element signature="e#25913#25996#0" expanded="false" />
+                <element signature="e#26263#26886#0" expanded="false" />
+                <element signature="e#26913#27481#0" expanded="false" />
+                <element signature="e#27022#27104#0" expanded="false" />
+                <element signature="e#27619#27702#0" expanded="false" />
+                <element signature="e#27884#27980#0" expanded="false" />
+                <element signature="e#28146#28340#0" expanded="false" />
+                <element signature="e#28177#28268#0" expanded="false" />
+                <element signature="e#28367#28491#0" expanded="false" />
+                <element signature="e#28607#28718#0" expanded="false" />
+                <element signature="e#28822#28919#0" expanded="false" />
+                <element signature="e#29066#29813#0" expanded="false" />
+                <element signature="e#29225#29315#0" expanded="false" />
+                <element signature="e#29386#29476#0" expanded="false" />
+                <element signature="e#29547#29634#0" expanded="false" />
+                <element signature="e#29718#29812#0" expanded="false" />
+                <element signature="e#29951#30034#0" expanded="false" />
+                <element signature="e#30656#32989#0" expanded="false" />
+                <element signature="e#30859#30946#0" expanded="false" />
+                <element signature="e#31078#32389#0" expanded="false" />
+                <element signature="e#31537#31607#0" expanded="false" />
+                <element signature="e#32425#32527#0" expanded="false" />
+                <element signature="e#32425#32495#0" expanded="false" />
+                <element signature="e#34136#34383#0" expanded="false" />
+                <element signature="e#35100#35149#0" expanded="false" />
+                <element signature="e#35185#35299#0" expanded="false" />
+                <element signature="e#35318#35427#0" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ECTools.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/ECTools.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="212">
+              <caret line="152" column="23" selection-start-line="152" selection-start-column="23" selection-end-line="152" selection-end-column="23" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="Git.Settings">
+    <option name="PREVIOUS_COMMIT_AUTHORS">
+      <list>
+        <option value="Da Pan &lt;pd.phy.pku@gmail.com&gt;" />
+      </list>
+    </option>
+    <option name="ROOT_SYNC" value="DONT_SYNC" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
+    <option name="FORCE_PUSH_ALLOWED" value="true" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/ECTools.py" />
+        <option value="$PROJECT_DIR$/ECTool_GUI.py" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds">
+    <option name="x" value="953" />
+    <option name="y" value="40" />
+    <option name="width" value="974" />
+    <option name="height" value="1047" />
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="false">
+    <OptionsSetting value="true" id="Add" />
+    <OptionsSetting value="true" id="Remove" />
+    <OptionsSetting value="true" id="Checkout" />
+    <OptionsSetting value="true" id="Update" />
+    <OptionsSetting value="true" id="Status" />
+    <OptionsSetting value="true" id="Edit" />
+    <ConfirmationsSetting value="0" id="Add" />
+    <ConfirmationsSetting value="0" id="Remove" />
+  </component>
+  <component name="ProjectView">
+    <navigator currentView="ProjectPane" proportions="" version="1">
+      <flattenPackages />
+      <showMembers />
+      <showModules />
+      <showLibraryContents />
+      <hideEmptyPackages />
+      <abbreviatePackageNames />
+      <autoscrollToSource />
+      <autoscrollFromSource />
+      <sortByType />
+      <manualOrder />
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope" />
+      <pane id="Scratches" />
+      <pane id="ProjectPane">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ECTools" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ECTools" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ECTools" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="settings.editor.selected.configurable" value="vcs.Git" />
+    <property name="settings.editor.splitter.proportion" value="0.2" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  </component>
+  <component name="RunManager" selected="Python.ECTool_GUI">
+    <configuration default="false" name="ECTool_GUI" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="ECTools" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/ECTool_GUI.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="ECTools" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="Tox" factoryName="Tox">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="ECTools" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Attests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="ECTools" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Doctests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="ECTools" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Nosetests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="ECTools" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <option name="PARAMS" value="" />
+      <option name="USE_PARAM" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Unittests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="ECTools" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <option name="PUREUNITTEST" value="true" />
+      <option name="PARAMS" value="" />
+      <option name="USE_PARAM" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="py.test">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="ECTools" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <option name="testToRun" value="" />
+      <option name="keywords" value="" />
+      <option name="params" value="" />
+      <option name="USE_PARAM" value="false" />
+      <option name="USE_KEYWORD" value="false" />
+      <method />
+    </configuration>
+    <list size="1">
+      <item index="0" class="java.lang.String" itemvalue="Python.ECTool_GUI" />
+    </list>
+    <recent_temporary>
+      <list size="1">
+        <item index="0" class="java.lang.String" itemvalue="Python.ECTool_GUI" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="ShelveChangesManager" show_recycled="false">
+    <option name="remove_strategy" value="false" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="8fd7990e-f0df-46ca-af9b-9310f178686a" name="Default" comment="" />
+      <created>1474056939623</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1474056939623</updated>
+    </task>
+    <task id="LOCAL-00001" summary="Added CutTOA5File">
+      <created>1474057003721</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1474057003721</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Added CutTOA5File">
+      <created>1474057030387</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1474057030387</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Added CutTOA5File">
+      <created>1474082586822</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1474082586822</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Time zone bug fixed by replacing all numpy.datetime64 with pd.datetime.">
+      <created>1474086431740</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1474086431740</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
+    <servers />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="953" y="40" width="974" height="1047" extended-state="0" />
+    <editor active="true" />
+    <layout>
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.28418803" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32932165" sideWeight="0.5053419" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32936078" sideWeight="0.49789253" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33260393" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32932165" sideWeight="0.4946581" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+    </layout>
+  </component>
+  <component name="Vcs.Log.UiProperties">
+    <option name="RECENTLY_FILTERED_USER_GROUPS">
+      <collection />
+    </option>
+    <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
+      <collection />
+    </option>
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Added CutTOA5File" />
+    <MESSAGE value="Time zone bug fixed by replacing all numpy.datetime64 with pd.datetime." />
+    <option name="LAST_COMMIT_MESSAGE" value="Time zone bug fixed by replacing all numpy.datetime64 with pd.datetime." />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <option name="time" value="1" />
+    </breakpoint-manager>
+    <watches-manager />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/ECTool_GUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="10944">
+          <caret line="608" column="37" selection-start-line="608" selection-start-column="37" selection-end-line="608" selection-end-column="37" />
+          <folding>
+            <element signature="e#424#1636#0" expanded="false" />
+            <element signature="e#544#1636#0" expanded="false" />
+            <element signature="e#852#906#0" expanded="false" />
+            <element signature="e#1324#1355#0" expanded="false" />
+            <element signature="e#1720#1966#0" expanded="false" />
+            <element signature="e#1998#2424#0" expanded="false" />
+            <element signature="e#2466#2543#0" expanded="false" />
+            <element signature="e#2578#3700#0" expanded="false" />
+            <element signature="e#3741#8280#0" expanded="false" />
+            <element signature="e#6362#6455#0" expanded="false" />
+            <element signature="e#8316#8477#0" expanded="false" />
+            <element signature="e#8516#8764#0" expanded="false" />
+            <element signature="e#8796#8949#0" expanded="false" />
+            <element signature="e#8983#9138#0" expanded="false" />
+            <element signature="e#9175#9250#0" expanded="false" />
+            <element signature="e#9291#9431#0" expanded="false" />
+            <element signature="e#9467#9544#0" expanded="false" />
+            <element signature="e#9598#12001#0" expanded="false" />
+            <element signature="e#12036#12107#0" expanded="false" />
+            <element signature="e#12143#12214#0" expanded="false" />
+            <element signature="e#12252#12680#0" expanded="false" />
+            <element signature="e#12724#12819#0" expanded="false" />
+            <element signature="e#12855#13310#0" expanded="false" />
+            <element signature="e#13352#13445#0" expanded="false" />
+            <element signature="e#13489#13563#0" expanded="false" />
+            <element signature="e#13605#13682#0" expanded="false" />
+            <element signature="e#13719#15699#0" expanded="false" />
+            <element signature="e#15746#15823#0" expanded="false" />
+            <element signature="e#15876#23170#0" expanded="false" />
+            <element signature="e#23945#24028#0" expanded="false" />
+            <element signature="e#24083#24692#0" expanded="false" />
+            <element signature="e#24902#24985#0" expanded="false" />
+            <element signature="e#25680#25765#0" expanded="false" />
+            <element signature="e#25913#25996#0" expanded="false" />
+            <element signature="e#26263#26886#0" expanded="false" />
+            <element signature="e#26913#27481#0" expanded="false" />
+            <element signature="e#27022#27104#0" expanded="false" />
+            <element signature="e#27619#27702#0" expanded="false" />
+            <element signature="e#27884#27980#0" expanded="false" />
+            <element signature="e#28146#28340#0" expanded="false" />
+            <element signature="e#28177#28268#0" expanded="false" />
+            <element signature="e#28367#28491#0" expanded="false" />
+            <element signature="e#28607#28718#0" expanded="false" />
+            <element signature="e#28822#28919#0" expanded="false" />
+            <element signature="e#29066#29813#0" expanded="false" />
+            <element signature="e#29225#29315#0" expanded="false" />
+            <element signature="e#29386#29476#0" expanded="false" />
+            <element signature="e#29547#29634#0" expanded="false" />
+            <element signature="e#29718#29812#0" expanded="false" />
+            <element signature="e#29951#30034#0" expanded="false" />
+            <element signature="e#30656#32989#0" expanded="false" />
+            <element signature="e#30859#30946#0" expanded="false" />
+            <element signature="e#31078#32389#0" expanded="false" />
+            <element signature="e#31537#31607#0" expanded="false" />
+            <element signature="e#32425#32527#0" expanded="false" />
+            <element signature="e#32425#32495#0" expanded="false" />
+            <element signature="e#34136#34383#0" expanded="false" />
+            <element signature="e#35100#35149#0" expanded="false" />
+            <element signature="e#35185#35299#0" expanded="false" />
+            <element signature="e#35318#35427#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ECTools.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ECTool_GUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="10944">
+          <caret line="608" column="37" selection-start-line="608" selection-start-column="37" selection-end-line="608" selection-end-column="37" />
+          <folding>
+            <element signature="e#424#1636#0" expanded="false" />
+            <element signature="e#544#1636#0" expanded="false" />
+            <element signature="e#852#906#0" expanded="false" />
+            <element signature="e#1324#1355#0" expanded="false" />
+            <element signature="e#1720#1966#0" expanded="false" />
+            <element signature="e#1998#2424#0" expanded="false" />
+            <element signature="e#2466#2543#0" expanded="false" />
+            <element signature="e#2578#3700#0" expanded="false" />
+            <element signature="e#3741#8280#0" expanded="false" />
+            <element signature="e#6362#6455#0" expanded="false" />
+            <element signature="e#8316#8477#0" expanded="false" />
+            <element signature="e#8516#8764#0" expanded="false" />
+            <element signature="e#8796#8949#0" expanded="false" />
+            <element signature="e#8983#9138#0" expanded="false" />
+            <element signature="e#9175#9250#0" expanded="false" />
+            <element signature="e#9291#9431#0" expanded="false" />
+            <element signature="e#9467#9544#0" expanded="false" />
+            <element signature="e#9598#12001#0" expanded="false" />
+            <element signature="e#12036#12107#0" expanded="false" />
+            <element signature="e#12143#12214#0" expanded="false" />
+            <element signature="e#12252#12680#0" expanded="false" />
+            <element signature="e#12724#12819#0" expanded="false" />
+            <element signature="e#12855#13310#0" expanded="false" />
+            <element signature="e#13352#13445#0" expanded="false" />
+            <element signature="e#13489#13563#0" expanded="false" />
+            <element signature="e#13605#13682#0" expanded="false" />
+            <element signature="e#13719#15699#0" expanded="false" />
+            <element signature="e#15746#15823#0" expanded="false" />
+            <element signature="e#15876#23170#0" expanded="false" />
+            <element signature="e#23945#24028#0" expanded="false" />
+            <element signature="e#24083#24692#0" expanded="false" />
+            <element signature="e#24902#24985#0" expanded="false" />
+            <element signature="e#25680#25765#0" expanded="false" />
+            <element signature="e#25913#25996#0" expanded="false" />
+            <element signature="e#26263#26886#0" expanded="false" />
+            <element signature="e#26913#27481#0" expanded="false" />
+            <element signature="e#27022#27104#0" expanded="false" />
+            <element signature="e#27619#27702#0" expanded="false" />
+            <element signature="e#27884#27980#0" expanded="false" />
+            <element signature="e#28146#28340#0" expanded="false" />
+            <element signature="e#28177#28268#0" expanded="false" />
+            <element signature="e#28367#28491#0" expanded="false" />
+            <element signature="e#28607#28718#0" expanded="false" />
+            <element signature="e#28822#28919#0" expanded="false" />
+            <element signature="e#29066#29813#0" expanded="false" />
+            <element signature="e#29225#29315#0" expanded="false" />
+            <element signature="e#29386#29476#0" expanded="false" />
+            <element signature="e#29547#29634#0" expanded="false" />
+            <element signature="e#29718#29812#0" expanded="false" />
+            <element signature="e#29951#30034#0" expanded="false" />
+            <element signature="e#30656#32989#0" expanded="false" />
+            <element signature="e#30859#30946#0" expanded="false" />
+            <element signature="e#31078#32389#0" expanded="false" />
+            <element signature="e#31537#31607#0" expanded="false" />
+            <element signature="e#32425#32527#0" expanded="false" />
+            <element signature="e#32425#32495#0" expanded="false" />
+            <element signature="e#34136#34383#0" expanded="false" />
+            <element signature="e#35100#35149#0" expanded="false" />
+            <element signature="e#35185#35299#0" expanded="false" />
+            <element signature="e#35318#35427#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ECTools.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ECTool_GUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#424#1636#0" expanded="false" />
+            <element signature="e#544#1636#0" expanded="false" />
+            <element signature="e#852#906#0" expanded="false" />
+            <element signature="e#1324#1355#0" expanded="false" />
+            <element signature="e#1720#1966#0" expanded="false" />
+            <element signature="e#1998#2424#0" expanded="false" />
+            <element signature="e#2466#2543#0" expanded="false" />
+            <element signature="e#2578#3700#0" expanded="false" />
+            <element signature="e#3741#8280#0" expanded="false" />
+            <element signature="e#6362#6455#0" expanded="false" />
+            <element signature="e#8316#8477#0" expanded="false" />
+            <element signature="e#8516#8764#0" expanded="false" />
+            <element signature="e#8796#8949#0" expanded="false" />
+            <element signature="e#8983#9138#0" expanded="false" />
+            <element signature="e#9175#9250#0" expanded="false" />
+            <element signature="e#9291#9431#0" expanded="false" />
+            <element signature="e#9467#9544#0" expanded="false" />
+            <element signature="e#9598#12001#0" expanded="false" />
+            <element signature="e#12036#12107#0" expanded="false" />
+            <element signature="e#12143#12214#0" expanded="false" />
+            <element signature="e#12252#12680#0" expanded="false" />
+            <element signature="e#12724#12819#0" expanded="false" />
+            <element signature="e#12855#13310#0" expanded="false" />
+            <element signature="e#13352#13445#0" expanded="false" />
+            <element signature="e#13489#13563#0" expanded="false" />
+            <element signature="e#13605#13682#0" expanded="false" />
+            <element signature="e#13719#15699#0" expanded="false" />
+            <element signature="e#15746#15823#0" expanded="false" />
+            <element signature="e#15876#23170#0" expanded="false" />
+            <element signature="e#23945#24028#0" expanded="false" />
+            <element signature="e#24083#24692#0" expanded="false" />
+            <element signature="e#24902#24985#0" expanded="false" />
+            <element signature="e#25680#25765#0" expanded="false" />
+            <element signature="e#25913#25996#0" expanded="false" />
+            <element signature="e#26263#26886#0" expanded="false" />
+            <element signature="e#26913#27481#0" expanded="false" />
+            <element signature="e#27022#27104#0" expanded="false" />
+            <element signature="e#27619#27702#0" expanded="false" />
+            <element signature="e#27884#27980#0" expanded="false" />
+            <element signature="e#28146#28340#0" expanded="false" />
+            <element signature="e#28177#28268#0" expanded="false" />
+            <element signature="e#28367#28491#0" expanded="false" />
+            <element signature="e#28607#28718#0" expanded="false" />
+            <element signature="e#28822#28919#0" expanded="false" />
+            <element signature="e#29066#29813#0" expanded="false" />
+            <element signature="e#29225#29315#0" expanded="false" />
+            <element signature="e#29386#29476#0" expanded="false" />
+            <element signature="e#29547#29634#0" expanded="false" />
+            <element signature="e#29718#29812#0" expanded="false" />
+            <element signature="e#29951#30034#0" expanded="false" />
+            <element signature="e#30656#32989#0" expanded="false" />
+            <element signature="e#30859#30946#0" expanded="false" />
+            <element signature="e#31078#32389#0" expanded="false" />
+            <element signature="e#31537#31607#0" expanded="false" />
+            <element signature="e#32425#32527#0" expanded="false" />
+            <element signature="e#32425#32495#0" expanded="false" />
+            <element signature="e#34136#34383#0" expanded="false" />
+            <element signature="e#35100#35149#0" expanded="false" />
+            <element signature="e#35185#35299#0" expanded="false" />
+            <element signature="e#35318#35427#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ECTools.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="212">
+          <caret line="152" column="23" selection-start-line="152" selection-start-column="23" selection-end-line="152" selection-end-column="23" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ECTool_GUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="359">
+          <caret line="625" column="42" selection-start-line="625" selection-start-column="42" selection-end-line="625" selection-end-column="42" />
+          <folding>
+            <element signature="e#424#1636#0" expanded="false" />
+            <element signature="e#544#1636#0" expanded="false" />
+            <element signature="e#852#906#0" expanded="false" />
+            <element signature="e#1324#1355#0" expanded="false" />
+            <element signature="e#1720#1966#0" expanded="false" />
+            <element signature="e#1998#2424#0" expanded="false" />
+            <element signature="e#2466#2543#0" expanded="false" />
+            <element signature="e#2578#3700#0" expanded="false" />
+            <element signature="e#3741#8280#0" expanded="false" />
+            <element signature="e#6362#6455#0" expanded="false" />
+            <element signature="e#8316#8477#0" expanded="false" />
+            <element signature="e#8516#8764#0" expanded="false" />
+            <element signature="e#8796#8949#0" expanded="false" />
+            <element signature="e#8983#9138#0" expanded="false" />
+            <element signature="e#9175#9250#0" expanded="false" />
+            <element signature="e#9291#9431#0" expanded="false" />
+            <element signature="e#9467#9544#0" expanded="false" />
+            <element signature="e#9598#12001#0" expanded="false" />
+            <element signature="e#12036#12107#0" expanded="false" />
+            <element signature="e#12143#12214#0" expanded="false" />
+            <element signature="e#12252#12680#0" expanded="false" />
+            <element signature="e#12724#12819#0" expanded="false" />
+            <element signature="e#12855#13310#0" expanded="false" />
+            <element signature="e#13352#13445#0" expanded="false" />
+            <element signature="e#13489#13563#0" expanded="false" />
+            <element signature="e#13605#13682#0" expanded="false" />
+            <element signature="e#13719#15699#0" expanded="false" />
+            <element signature="e#15746#15823#0" expanded="false" />
+            <element signature="e#15876#23170#0" expanded="false" />
+            <element signature="e#23945#24028#0" expanded="false" />
+            <element signature="e#24083#24692#0" expanded="false" />
+            <element signature="e#24902#24985#0" expanded="false" />
+            <element signature="e#25680#25765#0" expanded="false" />
+            <element signature="e#25913#25996#0" expanded="false" />
+            <element signature="e#26263#26886#0" expanded="false" />
+            <element signature="e#26913#27481#0" expanded="false" />
+            <element signature="e#27022#27104#0" expanded="false" />
+            <element signature="e#27619#27702#0" expanded="false" />
+            <element signature="e#27884#27980#0" expanded="false" />
+            <element signature="e#28146#28340#0" expanded="false" />
+            <element signature="e#28177#28268#0" expanded="false" />
+            <element signature="e#28367#28491#0" expanded="false" />
+            <element signature="e#28607#28718#0" expanded="false" />
+            <element signature="e#28822#28919#0" expanded="false" />
+            <element signature="e#29066#29813#0" expanded="false" />
+            <element signature="e#29225#29315#0" expanded="false" />
+            <element signature="e#29386#29476#0" expanded="false" />
+            <element signature="e#29547#29634#0" expanded="false" />
+            <element signature="e#29718#29812#0" expanded="false" />
+            <element signature="e#29951#30034#0" expanded="false" />
+            <element signature="e#30656#32989#0" expanded="false" />
+            <element signature="e#30859#30946#0" expanded="false" />
+            <element signature="e#31078#32389#0" expanded="false" />
+            <element signature="e#31537#31607#0" expanded="false" />
+            <element signature="e#32425#32527#0" expanded="false" />
+            <element signature="e#32425#32495#0" expanded="false" />
+            <element signature="e#34136#34383#0" expanded="false" />
+            <element signature="e#35100#35149#0" expanded="false" />
+            <element signature="e#35185#35299#0" expanded="false" />
+            <element signature="e#35318#35427#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>
