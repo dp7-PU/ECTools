@@ -208,8 +208,8 @@ def read_data_pd(f_names, col_names, base_time, delimiter=',', skiprows=5, \
 
         data = pd.concat([data, tmp_df], axis=0)
 
-    data[time_col] = pd.to_timedelta(data[time_col], unit='s').values + \
-                     np.datetime64(base_time) + np.timedelta64(time_zone,
+    data[time_col] = pd.to_timedelta(data[time_col], unit='s') + \
+                     pd.to_datetime(base_time) + pd.to_timedelta(time_zone,
                                                                'h')
 
     data.set_index(time_col, drop=False, inplace=True)
