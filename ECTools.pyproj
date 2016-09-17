@@ -77,6 +77,57 @@
     <Content Include="dist\ECTool_GUI\tk\images\pwrdLogo200.gif" />
     <Content Include="dist\ECTool_GUI\tk\images\pwrdLogo75.gif" />
     <Content Include="dist\ECTool_GUI\tk\images\tai-ku.gif" />
+    <Content Include="example\data\N2O_2016-06-18-T0000.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T0030.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T0100.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T0130.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T0200.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T0230.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T0300.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T0330.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T0400.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T0430.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T0500.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T0530.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T0549.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T0619.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T0649.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T0719.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T0749.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T0819.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T0849.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T0919.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T0949.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T1019.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T1049.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T1119.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T1149.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T1219.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T1249.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T1319.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T1349.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T1419.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T1449.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T1519.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T1549.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T1619.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T1649.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T1719.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T1749.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T1819.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T1849.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T1919.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T1949.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T2019.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T2049.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T2119.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T2149.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T2219.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T2249.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T2319.txt" />
+    <Content Include="example\data\N2O_2016-06-18-T2349.txt" />
+    <Content Include="example\data\N2O_2016-06-19-T0019.txt" />
+    <Content Include="example\data\TOA5_ts3_160618.dat" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CutTOA5File.py" />
@@ -109,6 +160,8 @@
     <Folder Include="dist\ECTool_GUI\statsmodels\stats\tests" />
     <Folder Include="dist\ECTool_GUI\tk\" />
     <Folder Include="dist\ECTool_GUI\tk\images" />
+    <Folder Include="example\" />
+    <Folder Include="example\data\" />
   </ItemGroup>
   <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />
