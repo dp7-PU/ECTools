@@ -9,7 +9,7 @@ T_cal: 293.0
 target_gas: N2O
 col_names: Time, 2f_peak, 1f_peak, intensity, peak_loc
 sonic_time_offset: -70.0
-spec_corr_file: C:/Users/pdphy/PycharmProjects/QCLAS/N2O_correction.csv
+spec_corr_file: C:/Users/pdphy/Documents/N2O_correction.csv
 p_cal: 99.0
 t_start: 2016-06-20T00:00
 alpha_v: 0.42
@@ -17,13 +17,13 @@ caliOffset: 81.21
 QCLThold: 1.5
 t_end: 2016-06-21T00:00
 TOA5_name: C:/Users/pdphy/Documents/20160601/TOA5_ts3_160618.dat
-QCLPeakLoc: 6500
+z: 3.0
 d: 0.3
 QCLPeakThold: 30
 lag_lim: 20
 show_lag: True
 isTOA5: True
 save_dir: C:\Users\pdphy\PycharmProjects\
-z: 3.0
+QCLPeakLoc: 6500
 isLI7500: True
 dir: C:\Users\pdphy\Documents\GitHub\ECTools\example\data

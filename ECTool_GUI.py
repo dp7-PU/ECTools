@@ -588,7 +588,7 @@ class AppWindow(QtGui.QMainWindow):
             it will be None.
 
         """
-        sufStr = 'not found!'
+        sufStr = ' not found!'
 
         # Check raw data file location.
         if not os.path.isdir(self.config['dir']):
@@ -602,6 +602,13 @@ class AppWindow(QtGui.QMainWindow):
         if self.isTOA5Radio.isChecked() & (not os.path.exists(self.config[
                                                                   'TOA5_name'])):
             return self.config['TOA5_name'] + sufStr
+
+        # Check spectroscopic correction file
+        if not os.path.exists(self.config['spec_corr_file']):
+            return self.config['spec_corr_file'] + sufStr + ' Please specify ' \
+                                                            'correction ' \
+                                                            'profile' \
+                                                            'location in advanced setting.'
 
         return None
 
