@@ -125,7 +125,8 @@ def save_config(config, config_name):
                 f.write(key + ': ' + str(config[key]) + '\n')
 
 
-def get_files(dir, prefix, tInterval, date_fmt='(\d+-\d+-\d+-T\d+)\.csv'):
+def get_files(dir, prefix, tInterval, date_fmt='(\d+-\d+-\d+-T\d+)\.csv', 
+              internalCheck=True):
     """
      Get files from defined locations; File name format: prefix + '_yyyy-mm-dd-THHMM.txt'
 
@@ -137,11 +138,13 @@ def get_files(dir, prefix, tInterval, date_fmt='(\d+-\d+-\d+-T\d+)\.csv'):
         Prefix of filename
     tInterval: array of timedate64
         Time interval to read.
+    internalCheck: Bool
+        If internalCheck is true.   
 
     Returns
     -------
     tuple (list, array)
-        First element is a list of strings containing file names for later import.
+        If internal First element is a list of strings containing file names for later import.
         Second element is an array consisting the created datetimes of the files.
 
 
@@ -150,25 +153,38 @@ def get_files(dir, prefix, tInterval, date_fmt='(\d+-\d+-\d+-T\d+)\.csv'):
     fNames = os.listdir(os.path.abspath(dir))
     outFName = []  # output file names
     dateTime = []
+    
+    validFileNum = 0
+    matchedFileNum = 0
+
     for file in fNames:
         m = re.match(prefix + date_fmt,
                      file)  # match file name pattern
         if m:
-            try:
-                datetimestr = m.group(1)[:-2] + ':' + m.group(1)[-2:]
-                datetimestr = datetimestr.replace('-T', 'T')  # Modify datatimestr
+            # Add matched file number
+            matchedFileNum += 1
 
-                tmp_dateTime = pd.to_datetime(datetimestr)
-                print tInterval
-                print tmp_dateTime
-                if (tInterval[0] < tmp_dateTime) & (tInterval[1] > tmp_dateTime):
-                    outFName.append(os.path.abspath(dir) + '\\' + file)
-                    dateTime.append(tmp_dateTime)
-            except:
-                outFName = None
-                dateTime = None
+            # Get datetime
+            datetimestr = m.group(1)[:-2] + ':' + m.group(1)[-2:]
+            datetimestr = datetimestr.replace('-T', 'T')  # Modify datatimestr
 
-    return outFName, dateTime
+            tmp_dateTime = pd.to_datetime(datetimestr)
+
+            if (tInterval[0] < tmp_dateTime) & (tInterval[1] > tmp_dateTime):
+                # Add valid file name
+                validFileNum += 1
+                outFName.append(os.path.abspath(dir) + '\\' + file)
+                dateTime.append(tmp_dateTime)
+    
+    if internalCheck:
+        if matchedFileNum == 0:
+            raise Exception('Format error, cannot find any matched file.')
+        elif validFileNum == 0:
+            raise Exception('No data were found in assigned time interval.')
+        else:
+            return outFName, dateTime
+    else:
+        return outFName, dateTime, matchedFileNum, validFileNum
 
 
 def read_data_pd(f_names, col_names, base_time, delimiter=',', skiprows=5, \
