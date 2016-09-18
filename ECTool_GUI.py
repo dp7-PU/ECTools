@@ -215,6 +215,15 @@ class AppWindow(QtGui.QMainWindow):
         self.leftTop.setAlignment(QtCore.Qt.AlignTop)
 
     def setLeftMid(self):
+        """
+    
+        Parameters
+        ----------
+    
+        Returns
+        -------
+    
+        """
         self.canvasXCov = mplCanvas(self, nrow=3, ncol=1)
         VBox = QtGui.QVBoxLayout()
         VBox.addWidget(self.canvasXCov)

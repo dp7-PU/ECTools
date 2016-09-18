@@ -1588,11 +1588,11 @@ def plot_time_series_pd(data, col_names, fig_size=(6, 4), sharex=True, labels=No
     -------
     fig: handle
         Figure handle.
-    axes: list of handles
+    axes: list of handles                     
         Axes handles.
 
     """
-
+    
     # Create
     if create_fig:
         fig, axes = plt.subplots(len(col_names), figsize=fig_size, sharex=sharex)
