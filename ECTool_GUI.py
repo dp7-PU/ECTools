@@ -578,6 +578,33 @@ class AppWindow(QtGui.QMainWindow):
                                              QtGui.QSizePolicy.Expanding)
         self.advancedSetDialog.hide()
 
+    def checkFileError(self):
+        """
+        Check file location to see if there's error.
+        Returns
+        -------
+        errorStr: str
+            If there's a error, there will be a string returned. Otherwise,
+            it will be None.
+
+        """
+        sufStr = 'not found!'
+
+        # Check raw data file location.
+        if not os.path.isdir(self.config['dir']):
+            return self.config['dir'] + sufStr
+
+        # Check save results file location.
+        if not os.path.isdir(self.config['save_dir']):
+            return self.config['save_dir'] + sufStr
+
+        # Check TOA5 data (if it is required)
+        if self.isTOA5Radio.isChecked() & (not os.path.exists(self.config[
+                                                                  'TOA5_name'])):
+            return self.config['TOA5_name'] + sufStr
+
+        return None
+
     def calc_flux(self):
         # Save setting first to make sure settings are stored
 
@@ -590,6 +617,15 @@ class AppWindow(QtGui.QMainWindow):
             delimiter = ','
         else:
             delimiter = '\t'
+
+        # Check file locations
+        fileError = self.checkFileError()
+
+        if fileError:
+            errorBox = QtGui.QWidget()
+            errorOk = QtGui.QMessageBox.critical(errorBox, 'Error', fileError)
+            errorBox.show()
+            return 0
 
         # Get target gas str
         target_gas = str(self.QCLGasCombo.currentText())
