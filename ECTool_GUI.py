@@ -667,11 +667,27 @@ class AppWindow(QtGui.QMainWindow):
             self.statusBox.insertPlainText('Calculation stopped by user.\n')
             return
 
-        files, date_time = ECTools.get_files(str(self.rawDirStr.text()),
-                                             str(self.prefixStr.text()),
-                                             t_intv,
-                                             date_fmt='(\d+-\d+-\d+-T\d+)\.'
-                                                      + self.config['file_type'])
+        files, date_time, mfn, vfn = ECTools.get_files(str(
+            self.rawDirStr.text()),
+            str(self.prefixStr.text()),
+            t_intv,
+            date_fmt='(\d+-\d+-\d+-T\d+)\.'
+                     + self.config['file_type'],
+            internalCheck=False)
+
+        # Check mached file number (mfn)
+        if mfn == 0:
+            getFileError = 'No file in the folder matches the format.'
+        elif vfn == 0:
+            getFileError = 'No data available for the time interval.'
+        else:
+            getFileError = None
+
+        if getFileError:
+            errorBox = QtGui.QWidget()
+            errorOk = QtGui.QMessageBox.critical(errorBox, 'Error', getFileError)
+            errorBox.show()
+            return 0
 
         col_names = self.config['col_names']
         base_time = self.config['base_time']

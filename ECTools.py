@@ -125,7 +125,8 @@ def save_config(config, config_name):
                 f.write(key + ': ' + str(config[key]) + '\n')
 
 
-def get_files(dir, prefix, tInterval, date_fmt='(\d+-\d+-\d+-T\d+)\.csv'):
+def get_files(dir, prefix, tInterval, date_fmt='(\d+-\d+-\d+-T\d+)\.csv',
+              internalCheck=True):
     """
      Get files from defined locations; File name format: prefix + '_yyyy-mm-dd-THHMM.txt'
 
@@ -137,6 +138,9 @@ def get_files(dir, prefix, tInterval, date_fmt='(\d+-\d+-\d+-T\d+)\.csv'):
         Prefix of filename
     tInterval: array of timedate64
         Time interval to read.
+    internalCheck: bool
+        Internal error check or not. If true, the program will check if the raw
+        data files are available and raise exception.
 
     Returns
     -------
@@ -144,34 +148,40 @@ def get_files(dir, prefix, tInterval, date_fmt='(\d+-\d+-\d+-T\d+)\.csv'):
         First element is a list of strings containing file names for later import.
         Second element is an array consisting the created datetimes of the files.
 
-
     """
 
     fNames = os.listdir(os.path.abspath(dir))
     outFName = []  # output file names
     dateTime = []
+
+    # Add var to count valid and matched file numbers.
+    matchedFileNum = 0
+    validFileNum = 0
+
     for file in fNames:
         m = re.match(prefix + date_fmt,
                      file)  # match file name pattern
         if m:
-            try:
-                datetimestr = m.group(1)[:-2] + ':' + m.group(1)[-2:]
-                datetimestr = datetimestr.replace('-T', 'T')  # Modify datatimestr
+            matchedFileNum += 1
 
-                tmp_dateTime = pd.to_datetime(datetimestr)
-                print tInterval
-                print tmp_dateTime
-                if (tInterval[0] < tmp_dateTime) & (tInterval[1] > tmp_dateTime):
-                    outFName.append(os.path.abspath(dir) + '\\' + file)
-                    dateTime.append(tmp_dateTime)
-            except:
-                raise Exception('Wrong format, file:' + file)
+            datetimestr = m.group(1)[:-2] + ':' + m.group(1)[-2:]
+            datetimestr = datetimestr.replace('-T', 'T')  # Modify datatimestr
 
-    if outFName:
-        return outFName, dateTime
+            tmp_dateTime = pd.to_datetime(datetimestr)
+            if (tInterval[0] < tmp_dateTime) & (tInterval[1] > tmp_dateTime):
+                validFileNum += 1
+                outFName.append(os.path.abspath(dir) + '\\' + file)
+                dateTime.append(tmp_dateTime)
+
+    if internalCheck:
+        if matchedFileNum == 0:
+            raise Exception('No file in the folder matches the format.')
+        elif validFileNum == 0:
+            raise Exception('No data available for time interval.')
+        else:
+            return outFName, dateTime
     else:
-        raise Exception('No file in the folder matches the format.')
-
+        return outFName, dateTime, matchedFileNum, validFileNum
 
 def read_data_pd(f_names, col_names, base_time, delimiter=',', skiprows=5, \
                  time_col='Time', time_zone=-5):
@@ -211,7 +221,7 @@ def read_data_pd(f_names, col_names, base_time, delimiter=',', skiprows=5, \
 
     data[time_col] = pd.to_timedelta(data[time_col], unit='s') + \
                      pd.to_datetime(base_time) + pd.to_timedelta(time_zone,
-                                                               'h')
+                                                                 'h')
 
     data.set_index(time_col, drop=False, inplace=True)
 
@@ -1592,7 +1602,7 @@ def plot_time_series_pd(data, col_names, fig_size=(6, 4), sharex=True, labels=No
         Axes handles.
 
     """
-    
+
     # Create
     if create_fig:
         fig, axes = plt.subplots(len(col_names), figsize=fig_size, sharex=sharex)
