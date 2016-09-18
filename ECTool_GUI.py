@@ -387,6 +387,29 @@ class AppWindow(QtGui.QMainWindow):
         self.advancedSetDialog.show()
         self.advancedSetDialog.activateWindow()
 
+    def checkFileError(self):        
+        # Main errors will be checked in this function are:
+        #   Filename errors
+        #   Folder name errors
+        
+        # String that will be added to the error info.
+        sufStr = 'not found!'
+        
+        # Check raw data dir.        
+        if not os.path.isdir(self.config['dir']):
+            return self.config['dir'] + sufStr
+
+        # Check save results dir.
+        if not os.path.isdir(self.config['save_dir']):
+            return self.config['save_dir'] + sufStr
+
+        # Check TOA5 file if TOA5 data are needed
+        if self.isTOA5Radio.isChecked() & (not os.path.exists(self.config['TOA5_name'])):
+            return self.config['TOA5_name'] + sufStr
+
+        return 0
+
+
     def createAdvancedSettingDialog(self):
         self.radioButtonGroup = QtGui.QButtonGroup()
 
@@ -585,15 +608,26 @@ class AppWindow(QtGui.QMainWindow):
         # Get target gas str
         target_gas = str(self.QCLGasCombo.currentText())
 
+        fileError = self.checkFileError()
+
+        # Check if there is a file location error.
+        if fileError:
+            errorBox = QtGui.QWidget(self)
+            errorOk = QtGui.QMessageBox.critical(errorBox,
+                                                 'Error',
+                                                 fileError,
+                                                 QtGui.QMessageBox.Ok)
+            errorBox.show()
+            return 0
+
+
         # Set time interval
         t_intv = pd.to_datetime([str(self.startTimeStr.text()),
                                  str(self.endTimeStr.text())])
-
+            
         self.statusBox.setText('Start calculation:\n')
         self.statusBox.moveCursor(QtGui.QTextCursor.End)
         QtGui.QApplication.processEvents()
-
-        print self.isTOA5Radio.isChecked()
 
         if not self.started:
             self.statusBox.insertPlainText('Calculation stopped by user.\n')
@@ -627,6 +661,17 @@ class AppWindow(QtGui.QMainWindow):
                                              t_intv,
                                              date_fmt='(\d+-\d+-\d+-T\d+)\.'
                                                       + self.config['file_type'])
+
+        print files
+        # Check if file names are corrected obtained
+        if files is None:
+            errorBox = QtGui.QWidget(self)
+            errorOk = QtGui.QMessageBox.critical(errorBox,
+                                                 'Error',
+                                                 'Invalid format for raw data file name',
+                                                 QtGui.QMessageBox.Ok)
+            errorBox.show()
+            return 0 
 
         col_names = self.config['col_names']
         base_time = self.config['base_time']

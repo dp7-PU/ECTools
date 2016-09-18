@@ -165,12 +165,10 @@ def get_files(dir, prefix, tInterval, date_fmt='(\d+-\d+-\d+-T\d+)\.csv'):
                     outFName.append(os.path.abspath(dir) + '\\' + file)
                     dateTime.append(tmp_dateTime)
             except:
-                raise Exception('Wrong format, file:' + file)
+                outFName = None
+                dateTime = None
 
-    if outFName:
-        return outFName, dateTime
-    else:
-        raise Exception('No file in the folder matches the format.')
+    return outFName, dateTime
 
 
 def read_data_pd(f_names, col_names, base_time, delimiter=',', skiprows=5, \

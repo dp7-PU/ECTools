@@ -3,7 +3,7 @@ sonic_head_direction: 265.0
 file_type: txt
 despike_lim: 5.0, 20.0, 3.0, 1.0, 1.0, 1.0, 3.0, 0.5, 0.1
 despike_method: constant
-prefix: N2O_
+prefix: N2O
 caliSlope: 22031.57
 T_cal: 293.0
 target_gas: N2O
@@ -23,7 +23,7 @@ QCLPeakThold: 30
 lag_lim: 20
 show_lag: True
 isTOA5: True
-save_dir: C:\Users\pdphy\PycharmProjects\ECTools
+save_dir: C:\Users\pdphy\PycharmProjects\ECTools\
 z: 3.0
 isLI7500: True
 dir: C:\Users\pdphy\Documents\20160601

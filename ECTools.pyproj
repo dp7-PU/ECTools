@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{a4f9ec31-dd87-4bed-b721-7e5e6af06ca2}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>CutTOA5File.py</StartupFile>
+    <StartupFile>ECTool_GUI.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
