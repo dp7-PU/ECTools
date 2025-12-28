@@ -1,0 +1,3768 @@
+"""
+Notes
+-----
+This module includes functions for eddy covariance analysis. Many of the functions
+can be used for data analysis with commercial instruments, e.g. CSAT3, LI7500, and
+LI7700. Some of the functions were specifically made for QCL sensors from Zondlo's
+group. Some of the functions were translated from "Eddycalc", a MATLAB package for
+eddy covariance calculation.
+
+Author
+------
+Da Pan,
+Department of Civil and Environmental Engineering,
+Princeton University
+Email: dp7@princeton.edu
+
+
+Created Date
+------------
+07/06/2016
+
+Edited Dates
+------------
+07/19/2016:
+    Added pandas package for time series analysis. One function "read_data_pd" was
+    added. To accommodate old data structure (dictionary), pandas SettingWithCopy was
+    turned off. The potential issue associated with this warning is that data may
+    not be updated if the new values have different dtype, which should always be
+    avoided anyway.
+
+07/20/2016:
+    Added time realignment ("time_realign") using pandas combine_first function.
+
+08/20/2016:
+    Added diurnaly composite analysis for long-period data plotting.
+
+
+"""
+
+import re
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+import scipy.ndimage
+import pickle
+import pandas as pd
+from scipy.interpolate import LinearNDInterpolator
+import scipy.integrate as integrate
+from scipy.special import gamma
+
+# Define constant:
+
+R_w = 461.5  # Ideal gas constant for water vapor, J/kg*K
+R_d = 287.05  # Ideal gas constant for dry air, J/kg*K
+R = 8.314  # Universal ideal gas constant, J/mol*K
+L_v = 1000 * 2257  # Latent heat of vaporization (H2O), J/kg
+C_p = 1005  # Approximate constant pressure specific heat of air, J/kg*K
+k = 0.4  # Von Karman constant for EC calculation
+g = 9.8  # Acceleration of gravity, m/s^2
+gamma_d = 1.4  # Dry air specific heat ratio
+alpha_v = 2.75  # NH3 foreign gas broadening coefficient for H2O density -1
+
+a = 17.271  # Dew point coefficient a
+b = 237.7  # Dew point coefficient b
+sonic_angle = 265  # Sonic heading angle
+sonic_num = 1  # Number of sonic;
+L_Kljun = np.genfromtxt("Kljun_L_95.csv", delimiter=",")
+molec_weight = {
+    # "NH3": 0.017,
+    "H2O": 0.018,
+    "CO2": 0.044,
+    # "N2O": 0.044
+}
+
+D_NH3 = 0.259
+
+pd.set_option("chained_assignment", None)
+
+
+def moving_average(a, n=3):
+    ret = np.cumsum(a, dtype=float)
+    ret[n:] = ret[n:] - ret[:-n]
+    return ret[n - 1 :] / n
+
+
+def read_config(config_name):
+    """
+    Read configuration f and return configuration. Configuration should specify directory of data files (dir),
+    and periods for analysis (t_start and t_end), base time specified in the LabView program (LV_time_base),
+    and column names (col_names).
+
+    Parameters
+    ----------
+    config_name: str
+        Name of configuration f.
+
+    Returns
+    -------
+    dict
+        Configuration dict.
+
+    """
+
+    print("\nReading configuration from " + config_name + ":\n")
+
+    config = {}
+
+    with open(config_name) as f:
+        for line in f:
+            key, value = line.split(": ")
+            config[key] = value[:-1]
+            print(key + ": " + value[:-1])
+
+    config["col_names"] = config["col_names"].split(", ")
+    # Convert str into num for despike_lim.
+    config["despike_lim"] = map(float, config["despike_lim"].split(", "))
+    config["sonic_time_offset"] = float(config["sonic_time_offset"])
+    return config
+
+
+def save_config(config, config_name):
+    """
+    Save configuration into configuration f.
+    Parameters
+    ----------
+    config: dict
+        A dict containing configuration.
+    config_name: str
+        File name of configuration.
+
+    Returns
+    -------
+
+    """
+    with open(config_name, "w") as f:
+        for key in config.keys():
+            if key in ["col_names", "despike_lim"]:
+                f.write(key + ": " + ", ".join(map(str, config[key])) + "\n")
+            else:
+                f.write(key + ": " + str(config[key]) + "\n")
+
+
+# %%
+def get_files(
+    dir, prefix, tInterval, date_fmt="(\d+-\d+-\d+-T\d+)\.csv", internalCheck=True
+):
+    """
+     Get files from defined locations; File name format: prefix + '_yyyy-mm-dd-THHMM.txt'
+
+    Parameters
+    ----------
+    dir: str
+        Directory of raw files.
+    prefix: str
+        Prefix of filename
+    tInterval: array of timedate64
+        Time interval to read.
+    internalCheck: bool
+        Internal error check or not. If true, the program will check if the raw
+        data files are available and raise exception.
+
+    Returns
+    -------
+    tuple (list, array)
+        First element is a list of strings containing f names for later import.
+        Second element is an array consisting the created datetimes of the files.
+
+    """
+
+    fNames = os.listdir(os.path.abspath(dir))
+    outFName = []  # output f names
+    dateTime = []
+
+    # Add var to count valid and matched f numbers.
+    matchedFileNum = 0
+    validFileNum = 0
+
+    for file in fNames:
+        if prefix == "":
+            if (file[-4:] == ".csv") & (len(file) == 14):
+                datetimestr = file[:-4]
+                tmp_dateTime = pd.to_datetime(datetimestr, format="%m%d%y%H%M")
+                if (tInterval[0] < tmp_dateTime) & (tInterval[1] > tmp_dateTime):
+                    validFileNum += 1
+                    outFName.append(os.path.abspath(dir) + "\\" + file)
+                    dateTime.append(tmp_dateTime)
+        else:
+            m = re.match(prefix + date_fmt, file)  # match f name pattern
+            if m:
+                matchedFileNum += 1
+
+                datetimestr = m.group(1)[:-2] + ":" + m.group(1)[-2:]
+                if "-T" in datetimestr:
+                    datetimestr = datetimestr.replace("-T", "T")  # Modify datatimestr
+
+                tmp_dateTime = pd.to_datetime(datetimestr)
+                if (tInterval[0] < tmp_dateTime) & (tInterval[1] > tmp_dateTime):
+                    validFileNum += 1
+                    outFName.append(os.path.abspath(dir) + "\\" + file)
+                    dateTime.append(tmp_dateTime)
+
+    if internalCheck:
+        if matchedFileNum == 0:
+            raise Exception("No f in the folder matches the format.")
+        elif validFileNum == 0:
+            raise Exception("No data available for time interval.")
+        else:
+            return outFName, dateTime
+    else:
+        return outFName, dateTime, matchedFileNum, validFileNum
+
+
+def cal_Xp(H2O, p, T, CH4, spec_correction):
+    H2O_8600 = H2O / 18  # mol/m3
+    slow_T = np.nanmean(T) + 273.15  # K
+    e = H2O_8600 * 18e-3 * R_w * slow_T / 1000  # kg/m3  # J/KG/K  # K  # kpa
+    x_v = molar_den2mixing(H2O_8600, p / 10, slow_T, e)
+    pe = p * (1 + alpha_v * x_v)
+    slow_k = spec_correction(pe, slow_T) / spec_correction(1000, 298)  # hpa
+
+    x_CH4_8600 = molar_den2mixing(
+        CH4 / 16 * slow_k,  # umol
+        p / 10,  # kpa
+        slow_T,  # k
+        e,  # kpa
+    )
+    return x_CH4_8600
+
+
+def cal_spec_den_corr(H2O, p, T, CH4, spec_correction):
+    H2O_8600 = H2O / 18  # mol/m3
+    e = H2O_8600 * 18e-3 * R_w * T / 1000  # kg/m3  # J/KG/K  # K  # kpa
+    x_v = molar_den2mixing(H2O_8600, p / 10, T, e)
+    pe = p * (1 + alpha_v * x_v)
+    k = spec_correction(pe, T) / spec_correction(1000, 298)  # hpa
+    return CH4 * k
+
+
+def read_data_pd(
+    f_names,
+    col_names,
+    base_time,
+    delimiter=",",
+    skiprows=5,
+    time_col="Time",
+    time_zone=-5,
+):
+    """
+    Reads raw data from Zondlo's group QCL sensor. This function uses pandas package.
+
+    Parameters
+    ----------
+    f_names: list of str
+        Names of files to be read.
+    col_names: list of str
+        Names of variables.
+    base_time: numpy datetime64
+        Base time used in the LabView program.
+    delimiter: str, default=','
+        Delimiter used in the files, default=','.
+    skiprows: int, default=5
+        Number of header lines to be skipped.
+    time_col: str, default='Time'
+        Column name of time.
+
+    Returns
+    -------
+    df: pandas DataFrame object
+        Output data frame.
+
+    """
+    # Initiate Data
+    data = pd.DataFrame()
+
+    # Read files and append DataFrame together
+    for f_name in f_names:
+        tmp_df = pd.read_csv(
+            f_name,
+            skiprows=skiprows,
+            names=col_names,
+            delimiter=delimiter,
+            na_values="-999",
+        )
+
+        data = pd.concat([data, tmp_df], axis=0)
+
+    data[time_col] = (
+        pd.to_timedelta(data[time_col], unit="s")
+        + pd.to_datetime(base_time)
+        + pd.to_timedelta(time_zone, "h")
+    )
+
+    if "peak_idx" in data.keys():
+        data["peak_idx"][data["peak_idx"] == 0] = np.nan
+        data.fillna(method="bfill", inplace=True)
+
+    # TODO Temporally assigning 0 to H2O concentration
+    # data['H2O'] = 0
+
+    data.set_index(time_col, drop=False, inplace=True)
+
+    return data
+
+
+def readData(f_names, col_names, delimiter=","):
+    """
+    Read data and assign the data to a dict with keys from colNames
+
+    Parameters
+    ----------
+    f_names: list of str
+        Names of files to read.
+    col_names: list of str
+        Names of columns.
+
+    Returns
+    -------
+    dict
+        A dictionary with keys of col_names and values of imported data.
+
+    """
+
+    data = {}
+
+    for col in col_names:
+        data[col] = np.array([])
+
+    for file in f_names:
+        try:
+            M = np.genfromtxt(file, skip_header=6, delimiter=delimiter)
+        except:
+            raise Exception("Cannot read " + file)
+        if len(data.keys()) == M.shape[1]:
+            for idx, col in enumerate(col_names):
+                data[col] = np.hstack((data[col], M[:, idx]))
+        else:
+            raise Exception("Cannot read " + file)
+
+    return data
+
+
+def mixRatio2molDen(c, p, T):
+    """
+    Convert mixing ratio to molar density.
+
+    Parameters
+    ----------
+    c: float
+        Volume mixing ratio.
+    p: float
+        Pressure in atm.
+    T: float
+        Temperature in K.
+
+    Returns
+    -------
+    m: float
+        Mol density in mol/m^3.
+
+    """
+    m = p * 1e3 / R / T * c
+    return m
+
+
+def cov_maximization(data, col_names, freq=10, lag_lim=2, idx_range=[0, -1]):
+    """
+    Compensate for time lag by maximizing covariance.
+
+    Parameters
+    ----------
+    data: dict
+        Input data.
+    col_names: list of str
+        Column names.
+    freq: int
+        Measurement frequency.
+    lag_lim: int
+        Limit of lag time.
+    idx_range: list of int
+        Start and end points of data slice.
+
+    Returns
+    -------
+    tuple (array, array)
+        First array contains covariances with different lag times.
+        Second array contains the corresponding lag times.
+
+    """
+
+    # Get data for covariance calculation
+    tmp_x = data[col_names[0]][idx_range[0] : idx_range[1]]
+    tmp_y = data[col_names[1]][idx_range[0] : idx_range[1]]
+    x = tmp_x[(~np.isnan(tmp_x)) & (~np.isnan(tmp_y))]
+    y = tmp_y[(~np.isnan(tmp_x)) & (~np.isnan(tmp_y))]
+
+    max_shift_num = int(lag_lim * freq)  # Convert lag lim to data shift limit
+
+    cov = np.zeros((max_shift_num * 2 + 1, 1))  # Initialize output cov
+
+    lag = np.arange(-max_shift_num, max_shift_num + 1, 1)  # Assign lag time
+
+    # Loop to calculate covariance with varying lag times. Each loop calculates one
+    # shifting x ahead in time and one shifting x behind.
+    for i in range(1, max_shift_num + 1):
+        # Shift backward
+        m = np.c_[x[i:], y[:-i]]
+        cov[max_shift_num - i] = np.abs(np.cov(np.transpose(m))[1, 0])
+
+        # Shift forward
+        m = np.c_[x[:-i], y[i:]]
+        cov[max_shift_num + i] = np.abs(np.cov(np.transpose(m))[1, 0])
+
+    m = np.c_[x, y]
+    cov[max_shift_num] = np.cov(m.T)[1, 0]
+
+    return cov, lag
+
+
+def cov_std(data, col_names, freq=10, idx_range=[0, -1], n=18000):
+    """
+    Compensate for time lag by maximizing covariance.
+
+    Parameters
+    ----------
+    data: dict
+        Input data.
+    col_names: list of str
+        Column names.
+    freq: int
+        Measurement frequency.
+    lag_lim: int
+        Limit of lag time.
+    idx_range: list of int
+        Start and end points of data slice.
+
+    Returns
+    -------
+    tuple (array, array)
+        First array contains covariances with different lag times.
+        Second array contains the corresponding lag times.
+
+    """
+
+    # Get data for covariance calculation
+    tmp_x = data[col_names[0]][idx_range[0] : idx_range[1]]
+    tmp_y = data[col_names[1]][idx_range[0] : idx_range[1]]
+    x = tmp_x[(~np.isnan(tmp_x)) & (~np.isnan(tmp_y))]
+    y = tmp_y[(~np.isnan(tmp_x)) & (~np.isnan(tmp_y))]
+
+    cov = np.zeros((int(n / 30), 1))  # Initialize output cov
+
+    # Loop to calculate covariance with varying lag times. Each loop calculates one
+    # shifting x ahead in time and one shifting x behind.
+    if len(x) > int(n / 2):
+        for i in range(int(n / 12), int(n / 10)):
+            # Shift backward
+            m = np.c_[x[i:], y[:-i]]
+            cov[int(n / 10) - i] = np.abs(np.cov(np.transpose(m))[1, 0])
+
+            # Shift forward
+            m = np.c_[x[:-i], y[i:]]
+            cov[i - int(n / 12)] = np.abs(np.cov(np.transpose(m))[1, 0])
+
+        return np.std(cov)
+    else:
+        return np.nan
+
+
+def time_realign(data, time_span="100ms"):
+    """
+    Realign time according to frequency.
+    Parameters
+    ----------
+    data: DataFrame
+        Input data frame.
+    time_span: str, default='100ms'
+        Resample time span.
+
+    Returns
+    -------
+    data_out: DataFrame
+        Output data frame.
+
+    Examples
+    --------
+    data = pd.DataFrame({'Time': np.array(['2016-01-01T00:00:00.001234',
+                                           '2016-01-01T00:00:00.101233',
+                                           '2016-01-01T00:00:00.201232'],
+                                          dtype='datetime64[ns]'),
+                         'u': [1.5, 2.5, 3.5],
+                         'v': [2.5, 3.5, 4.5]})
+    data = data.set_index('Time', drop=False)
+    time_realign(data)
+    # Output
+    # u    v                    Time
+    # Time
+    # 2016-01-01 05:00:00.000  1.5  2.5 2016-01-01 05:00:00.000
+    # 2016-01-01 05:00:00.100  2.5  3.5 2016-01-01 05:00:00.100
+    # 2016-01-01 05:00:00.200  3.5  4.5 2016-01-01 05:00:00.200
+
+    """
+    # Resample the time series using time_span.
+    data_out = data.resample(time_span).mean()
+
+    # After resample, 'Time' col will be removed. Added back here.
+    data_out["Time"] = data_out.index.values
+
+    return data_out
+
+
+def molar_den2mixing(rho_gas, p, T, e):
+    """
+    Convert gas density to gas mixing ratio. Input could be single value or array.
+
+    Parameters
+    ----------
+    rho_gas: array of float
+        Air density.
+    p: array of float
+        Ambient pressure.
+    T: array of float
+        Ambieint temperature
+    e: float
+
+
+    Returns
+    -------
+    array of float
+        Mixing ratio of the gas.
+
+    """
+    # p_gas = rho_gas * R_gas * T, mixing_ratio = p_gas / p
+    return rho_gas * R * T / (p - e) / 1000
+
+
+def get_planar_fit_coeff(u, v, w):
+    """
+    Calculates the planar fit coefficients for coordinate rotation (Wilczak et al., 2001).
+
+    Parameters
+    ----------
+    u: array of float
+        Run-averaged u (m/s)
+    v: array of float
+        Run-averaged v (m/s)
+    w: array of float
+        Run-averaged u (m/s)
+
+    Returns
+    -------
+    tuple (array, array)
+        (k, b)
+        k: array of unit vector with three elements.
+        b: tilt coefficients b0, b1, b2
+    """
+
+    # Get length of the data set
+    l = len(u)
+    # Calculate b using Wilczak routine
+    su = np.sum(u)
+    sv = np.sum(v)
+    sw = np.sum(w)
+    suv = np.sum(u * v)
+    suw = np.sum(u * w)
+    svw = np.sum(v * w)
+    su2 = np.sum(u**2)
+    sv2 = np.sum(v**2)
+    H = np.array([[l, su, sv], [su, su2, suv], [sv, suv, sv2]])
+    g = np.array([sw, suw, svw])
+    b = np.linalg.lstsq(H, g)[0]
+
+    # Calculate unit vector parallel to the new z-axis
+    k = np.zeros((3,))
+    k[2] = 1 / np.sqrt(1 + b[1] ** 2 + b[2] ** 2)
+    k[0] = -b[1] * k[2]
+    k[1] = -b[2] * k[2]
+
+    return k, b
+
+
+def dewpoint_approximation(T, RH):
+    """
+    Approximate dew point using Magnus formula.
+
+    Parameters
+    ----------
+    T: array of float
+        Air temperature.
+    RH: array of float
+        Relative humidity.
+
+    Returns
+    -------
+    list
+        T_dp: Dew point.
+    """
+
+    gamma = (a * T / (b + T)) + np.log(RH / 100.0)
+
+    T_dp = (b * gamma) / (a - gamma)
+
+    return T_dp
+
+
+def rotate_wind_vector(u_unrot, v_unrot, w_unrot, method, k):
+    """
+    Transform wind to mean streamline coordinate system using double rotation, triple rotation or planar fit method.
+
+    Parameters
+    ----------
+    u_unrot: array of float
+        Original u (m/s)
+    v_unrot: array of float
+        Original u (m/s)
+    w_unrot: array of float
+        Original u (m/s)
+    method: str
+        Rotation method, i.e. 'PF': planar fit; 'DR': double rotation; 'TR':
+        Triple rotation.
+    k: array of float
+        Unit vector of new z-axis from planar fit.
+
+    Returns
+    -------
+    u_rot: array
+        Rotated u (m/s).
+    v_rot: array
+        Rotated v (m/s).
+    w_rot: array
+        Rotated w (m/s).
+    theta: float
+        Horizontal wind direction (rad).
+    phi: float
+        Vertical wind tilt (rad).
+
+    """
+
+    # Combine winds into matrix
+    wind_unrot = np.c_[u_unrot, v_unrot, w_unrot]
+
+    # Planar fit method
+    if method == "PF":
+        # Determine unit vectors i and j parallel to the new x and y axis
+        j = np.cross(k, np.nanmean(wind_unrot, axis=0))
+        j = j / np.sqrt(np.sum(j**2))
+        i = np.cross(j, k)
+
+        # Transform winds
+        wind_rot = np.dot(wind_unrot, np.c_[i, j, k])
+        phi = np.arccos(np.dot(k, np.array([0, 0, 1])))
+        theta = np.arctan2(np.nanmean(-v_unrot), np.nanmean(u_unrot))
+
+    else:
+        # Mirror y-axes to get right-handed coordinate system (depends on the sonic)
+        wind_unrot[:, 1] = wind_unrot[:, 1]
+
+        # First rotation to set mean(v) = 0
+        theta = np.arctan2(np.nanmean(wind_unrot[:, 1]), np.nanmean(wind_unrot[:, 0]))
+
+        rot1 = np.array(
+            [
+                [np.cos(theta), -np.sin(theta), 0.0],
+                [np.sin(theta), np.cos(theta), 0.0],
+                [0, 0, 1],
+            ]
+        )
+        wind1 = np.dot(wind_unrot, rot1)
+        # Second rotation to set mean(w) = 0
+        phi = np.arctan2(np.nanmean(wind1[:, 2]), np.nanmean(wind1[:, 0]))
+        rot2 = np.array(
+            [[np.cos(phi), 0, -np.sin(phi)], [0, 1, 0], [np.sin(phi), 0, np.cos(phi)]]
+        )
+        wind_rot = np.dot(wind1, rot2)
+
+        # Third rotation to set mean(vw) = 0
+        if method == "TR":
+            psi = 0.5 * np.arctan2(
+                2 * np.nanmean(wind_rot[:, 1] * wind_rot[:, 2]),
+                np.nanmean(wind_rot[:, 1] ** 2) - np.nanmean(wind_rot[:, 2] ** 2),
+            )
+            rot3 = np.array(
+                [
+                    [1, 0, 0],
+                    [0, np.cos(phi), -np.sin(psi)],
+                    [0, np.sin(psi), np.cos(psi)],
+                ]
+            )
+            wind_rot = np.dot(wind_rot, rot3)
+
+    u_rot = wind_rot[:, 0]
+    v_rot = wind_rot[:, 1]
+    w_rot = wind_rot[:, 2]
+
+    return u_rot, v_rot, w_rot, theta, phi
+
+
+def planar_fit_wind_rotata(data, P_mat, offset, wd):
+    tmp_data = np.matmul(P_mat, data[["u", "v", "w"]].transpose())
+    A = np.array([[np.cos(wd), np.sin(wd), 0], [-np.sin(wd), np.cos(wd), 0], [0, 0, 1]])
+    tmp_data = np.matmul(A, tmp_data).values
+    data["u_rot"] = tmp_data[0, :]
+    data["v_rot"] = tmp_data[1, :]
+    data["w_rot"] = tmp_data[2, :] - offset
+
+
+def calc_sonic_T(c):
+    """
+    Convert sonic sound speed to air temperature.
+
+    Parameters
+    ----------
+    c: float
+        Sound speed.
+
+    Returns
+    -------
+    float:
+        Sonic temperature.
+
+    """
+    return c**2 / gamma_d / R_d
+
+
+def calc_air_properties(Ts, H2OD, p):
+    """
+    Calculates average air temperature (T_avg), pressure, density (rho_air), water content (q_avg), pressure(p_avg)
+    virtual potential (theta_v_avg), water vapor pressure (e), saturated water vapor pressure (es), and relative
+    humidity (RH). And also return turbulent temperature, virtual potential, and water content.
+
+    Parameters
+    ----------
+    Ts: array of float
+        Sonic temperature.
+    H2OD: array of float
+        Water molar density
+    p: array of float
+        Ambient pressure.
+
+    Returns
+    -------
+    tuple (dict, array, array, array)
+        (air_prop, theta_v, q, T)
+        air_prop
+            Air properties, keys: T_avg, rho_air, q_avg, p_avg, e, es, RH,
+            theta_v_avg
+        theta_v
+            Turbulent virtual potential temperature (K)
+        q
+            Turbulent water content (kg/m^3)
+        T
+            Turbulent air temperature (K)
+        e
+            Water vapor pressure (kPa)
+
+    """
+
+    # Calculate water vapor content, H2OD unit: mol/m^3
+    rho_v = H2OD * molec_weight["H2O"]
+    # Calculate average pressure and temperature
+    T_avg = np.nanmean(Ts)
+    p_avg = np.nanmean(p)
+    rho_v_avg = np.nanmean(rho_v)
+    T = Ts
+    # Iterate to adjust water vapor effect on sonic temperature
+    sonic_err = (
+        True  # Flag for if the tolerance is reached before looping for 1000 times
+    )
+    i = 0  # Number of iteration
+    while sonic_err & (i < 2000):
+        # Calculate air temperature
+        rho_air = p_avg * 1e3 / R_d / T_avg - rho_v  # kg/m3
+        # Adjust for
+        T = Ts / (1.0 + 0.51 * rho_v / rho_air)
+        tmp_T_avg = np.nanmean(T)
+        if np.abs(tmp_T_avg - T_avg) < 1e-3:
+            sonic_err = False
+        else:
+            T_avg = tmp_T_avg
+            i += 1
+    air_prop = {}
+    q = rho_v / rho_air
+
+    air_prop["T_avg"] = T_avg
+    air_prop["rho_air"] = np.nanmean(rho_air)  # kg/m3
+    air_prop["q_avg"] = np.nanmean(q)
+    air_prop["p_avg"] = p_avg
+    air_prop["e"] = np.nanmean(rho_v) * R_w * T_avg / 1000
+    air_prop["es"] = T_avg ** (-8.2) * np.exp(77.345 + 0.0057 * T_avg - 7235.0 / T_avg)
+    air_prop["RH"] = air_prop["e"] / air_prop["es"] * 100.0
+    H2OD = rho_v / molec_weight["H2O"]
+    # Calculate potential temperature
+    e = rho_v * R_w * T / 1000
+    x_v = molar_den2mixing(H2OD, p, T, e)
+    theta = T * (100.0 / p) ** (2.0 / 7.0)
+    theta_v = theta * (1.0 + 0.61 * x_v)
+    air_prop["theta_v_avg"] = np.nanmean(theta_v)
+
+    return air_prop, theta_v, q, T, e
+
+
+def calc_air_no_h2o(Ts, RH, p):
+    air_prop = {}
+
+    sonic_err = (
+        True  # Flag for if the tolerance is reached before looping for 1000 times
+    )
+    i = 0  # Number of iteration
+    T_avg = np.nanmean(Ts)
+    p_avg = np.nanmean(p)
+    while sonic_err & (i < 2000):
+        es = T_avg ** (-8.2) * np.exp(77.345 + 0.0057 * T_avg - 7235.0 / T_avg)
+        e = es * RH / 100
+        rho_v = e / R_w / T_avg
+        rho_v_avg = np.nanmean(rho_v)
+        # Calculate air temperature
+        rho_air = p_avg * 1e3 / R_d / T_avg - 0.61 * rho_v
+        # Adjust for
+        T = Ts / (1.0 + 0.51 * rho_v / rho_air)
+        tmp_T_avg = np.nanmean(T)
+        if np.abs(tmp_T_avg - T_avg) < 1e-3:
+            sonic_err = False
+        else:
+            T_avg = tmp_T_avg
+            i += 1
+    air_prop = {}
+    q = rho_v / rho_air
+
+    air_prop["T_avg"] = T_avg
+    air_prop["rho_air"] = np.nanmean(rho_air)
+    air_prop["q_avg"] = np.nanmean(q)
+    air_prop["p_avg"] = p_avg
+    air_prop["e"] = np.nanmean(rho_v) * R_w * T_avg / 1000
+    air_prop["es"] = T_avg ** (-8.2) * np.exp(77.345 + 0.0057 * T_avg - 7235.0 / T_avg)
+    air_prop["RH"] = air_prop["e"] / air_prop["es"] * 100.0
+
+    # Calculate potential temperature
+    e = rho_v * R_w * T / 1000
+    H2OD = rho_v * molec_weight["H2O"]
+    x_v = molar_den2mixing(H2OD, p, T, e)
+    theta = T * (100.0 / p) ** (2.0 / 7.0)
+    theta_v = theta * (1.0 + 0.61 * x_v)
+    air_prop["theta_v_avg"] = np.nanmean(theta_v)
+
+    return air_prop, q, T, e
+
+
+def cosp_analysis(
+    data, col_pairs, Time, bin_number=100, show_fig=False, f_lim=[0.0005, 5]
+):
+    """
+    Perform cospectra analysis for given column pairs and save the exp-bined cospectra to out_put_files.
+
+    Parameters
+    ----------
+    data: dict
+        Input data.
+    col_pairs: list[list[str]]
+        Paris of columns for cospectra analysis. Format: [['x0','y0'],...,
+        ['x_n-1','y_n-1']]
+    Time: datetime64
+        Time correcponding to the cospectra.
+    bin_number: int
+        Number of bin.
+    show_fig: bool
+        If true, plot the results.
+    f_lim: array of float
+        Frequency limits for the bin. List should have two elements.
+
+    Returns
+    -------
+    dict
+        Cospectra: Keys are the names of pairs, and values are binned cospectra.
+        And one addition key for frequency.
+
+    """
+
+    cospectra = {}
+    for col_pair in col_pairs:
+        # Calculate cospectra
+        f, cov, cos, co = calc_cospectra(data, col_pair)
+
+        # Bin cospectra
+        f_bin, cosp_bin = bin_log_spaced(f, cos, 64, f_lim=f_lim)
+        cosp_bin = cosp_bin
+
+        # Add to dict
+        cospectra[col_pair[0] + col_pair[1]] = cosp_bin
+
+        # Plot cospectra if show_fig
+        if show_fig:
+            # Cospectra usually are shown in loglog plot
+            plt.loglog(f_bin, f_bin * cosp_bin, label=col_pair[0] + col_pair[1])
+
+    # Since all cospectra should have same frequency bin, add the last value of f_bin to the dict
+    cospectra["freq_bin"] = f_bin
+    cospectra["Time"] = Time
+
+    if show_fig:
+        plt.gca().invert_xaxis()
+        plt.legend()
+        plt.show()
+
+    return cospectra
+
+
+def nancov(m):
+    """
+    Calculate covariance while ignore nan values.
+    Parameters
+    ----------
+    m: ndarray
+        Matrix for covariance calculation.
+
+    Returns
+    -------
+    Cov: ndarray
+        Covariance of the matrix.
+    """
+    valid_mask = ~np.zeros(m[0].shape, dtype="bool_")
+    # This is to make sure the order agrees with original np.cov
+    # Get not nan values out
+
+    for x in m:
+        valid_mask = valid_mask & ~np.isnan(x)
+
+    m = m[:, valid_mask]
+    cov = np.cov(m)
+
+    return cov
+
+
+def calc_turbulent_flux(data, air_prop, gas_avg, add_gas=None):
+    """
+    Calculate common turbulent fluxes of tau (surface stress, rho u'w'), H (sensible
+    heat, rho cp w'T'), LE (latent heat, rho L w'x_H2O'), F_CO2 (CO2 flux,
+    rho w'x_CO2'). If add_gas_flux is given, additional flux will be calculated
+    using rho w'x_gas'.
+    Parameters
+    ----------
+    data: dict
+        Input data.
+    rho: float
+        Average air density kg/m^3.
+    add_gas: list of str
+        If add_flux is not none, it will be looped to calculate additional gas
+        fluxes.
+
+    Returns
+    -------
+    tur_flux: dict
+        Keys: tau, H, LE, F_CO2, FO_H2O, w_WPL, F_gas, u_star, TKE, L
+    """
+    tur_flux = {}
+    rho = air_prop["rho_air"]
+    T_avg = air_prop["T_avg"]
+
+    # Surface stress: tau = rho * u' * w'
+    tur_flux["tau"] = rho * nancov(np.c_[data["u"], data["w"]].T)[0, 1]
+
+    # Sensible heat: H = rho * C_p * w' * T'
+    tur_flux["H"] = rho * C_p * nancov(np.c_[data["w"], data["T"]].T)[0, 1]
+
+    # Water vapor flux: F_H2O = w' * c_H2O'
+    tur_flux["F_H2O"] = nancov(np.c_[data["w"], data["H2O"]].T)[0, 1]
+
+    # Latent heat: LE = rho * L_v * w' * x_H2O'
+    tur_flux["LE"] = (
+        molec_weight["H2O"]
+        * (1 + np.nanmean(data["x_H2O"]))
+        * (
+            tur_flux["F_H2O"]
+            + np.nanmean(data["H2O"]) / T_avg * tur_flux["H"] / rho / C_p
+        )
+        * L_v
+    )
+
+    # Calculate WPL wind velocity.
+    w_WPL = WPL_velocity(rho, T_avg, tur_flux["LE"], tur_flux["H"])
+
+    # CO2 flux: F_CO2 = rho * w' * x_CO2
+    tur_flux["F_CO2"] = molec_weight["CO2"] * (
+        (np.c_[data["w"], data["CO2"]].T)[0, 1] + gas_avg["CO2"] * w_WPL
+    )
+
+    tur_flux["w_WPL"] = w_WPL
+
+    # Flux of additional gases
+    for gas in add_gas:
+        tur_flux["F_" + gas] = molec_weight[gas] * (
+            nancov(np.c_[data["w"], data[gas]].T)[0, 1] + gas_avg[gas] * w_WPL
+        )
+
+    # Turbulence properties
+    wind_cov = nancov(np.c_[data["u"], data["v"], data["w"]].T)
+
+    # u_star = ((u'w')^2 + (v'w')^2)^1/4
+    tur_flux["u_star"] = (wind_cov[0, 2] ** 2 + wind_cov[1, 2] ** 2) ** 0.25
+
+    # TKE = 1/2 * (u'^2 + v'^2 + w'^2)
+    tur_flux["TKE"] = 0.5 * (wind_cov[0, 0] + wind_cov[1, 1] + wind_cov[2, 2])
+
+    # w'theta_v'
+    tmp_theta_cov = nancov(np.c_[data["w"], data["theta_v"]].T)[0, 1]
+
+    # theta_v_avg
+    theta_v_avg = np.nanmean(data["theta_v"])
+
+    tur_flux["L"] = -tur_flux["u_star"] ** 3.0 * theta_v_avg / k / g / tmp_theta_cov
+
+    tur_flux["wind_direction"] = np.degrees(np.nanmean(data["theta"]))
+
+    tur_flux["wind_speed"] = np.sqrt(
+        np.nanmean(data["u_rot"] ** 2 + data["v_rot"] ** 2)
+    )
+
+    tur_flux["sigma_w"] = np.std(data["w_rot"])
+
+    return tur_flux
+
+
+def fast_shift_lag(
+    data,
+    col_names,
+    target_col,
+    lag_lim=10,
+    idx_range=[0, -1],
+    show_fig=False,
+    freq=10,
+    create_fig=False,
+    fig=None,
+    axes=None,
+    save_fig=False,
+    fig_name=None,
+):
+    """
+    This function calls cov_maximization and shift the time lag.
+
+    Parameters
+    ----------
+    data: dict
+        Input data.
+    col_names: list of str
+        Column names for shifting.
+    target_col: str
+        The column that other columns will shift towards to.
+    lag_lim: int
+        Lat time limits (second).
+    idx_range: list of in
+        Index range.
+    show_fig: bool
+        If true, show results in a figure.
+    freq: int
+        Measurement frequency.
+
+    Returns
+    -------
+
+    """
+    # Create handles for figure
+
+    if create_fig:
+        fig, axes = plt.subplots(len(col_names), sharex=True)
+
+    max_shift_num = int(lag_lim * freq)
+
+    for idx, col in enumerate(col_names):
+        tmp_data = data[[col, target_col]].dropna(how="any")
+        if (len(tmp_data) % 2) == 0:  # 为什么要奇数
+            tmp_data = tmp_data.iloc[:-1]
+        a = np.r_[
+            np.zeros(max_shift_num),
+            tmp_data[target_col].values,
+            np.zeros(max_shift_num),
+        ] / np.sign(
+            np.cov(tmp_data.transpose())[0, 1]
+        )  # 根据方差结果，变换风速的单位   sign 大于0 为1 小于0 为-1
+        v = tmp_data[col]
+        cov = np.correlate(a, v)  # 两个数组长度不同会错位点乘
+        lag = np.arange(-max_shift_num, max_shift_num + 1)
+        # Plot lag against covariance
+        if create_fig:
+            axes[idx].plot(lag * 0.1, cov)
+            axes[idx].set_ylabel("cov(w " + col_names[idx] + ")")
+        # axes[idx].set_ylabel(f'cov(w f{col_names[idx]})'+r' (umol m$^{-2}$ s$^{-1}$)', fontname='Arial')
+        # axes[idx].set_xlabel("t(s)")
+        lag_num = np.argmax(cov) - max_shift_num
+        # print(lag_num)
+        if lag_num < 0:
+            data[col][0:lag_num] = data[col][-lag_num:]
+            data[col][lag_num:] = np.nan
+        elif lag_num > 0:
+            data[col][lag_num:] = data[col][0:-lag_num]
+            data[col][0:lag_num] = np.nan
+
+    if show_fig:
+        if create_fig:
+            plt.show()
+        else:
+            fig.tight_layout()
+            fig.canvas.draw()
+
+    if save_fig:
+        fig.savefig(fig_name)
+
+
+def fast_shift_lag_8600(
+    data,
+    col_names,
+    target_col,
+    lag_lim=10,
+    idx_range=[0, -1],
+    show_fig=False,
+    freq=10,
+    create_fig=True,
+    fig=None,
+    axes=None,
+    save_fig=False,
+    fig_name=None,
+    timelag_save_name="time_lag.txt",
+):
+    """
+    This function calls cov_maximization and shift the time lag.
+    This function was recised by SWH to calculate time lag for trace gases with low signals .
+    In this function other components were adjust time lag by water component
+    Parameters
+    ----------
+    data: dict
+        Input data.
+    col_names: list of str
+        Column names for shifting.
+    target_col: str
+        The column that other columns will shift towards to.
+    lag_lim: int
+        Lat time limits (second).
+    idx_range: list of in
+        Index range.
+    show_fig: bool
+        If true, show results in a figure.
+    freq: int
+        Measurement frequency.
+
+    Returns
+    -------
+
+    """
+    # Create handles for figure
+
+    if create_fig:
+        fig, axes = plt.subplots(len(col_names), sharex=True)
+
+    max_shift_num = int(lag_lim * freq)
+
+    col = col_names[0]
+    tmp_data = data[[col, target_col]].dropna(how="any")
+
+    if (len(tmp_data) % 2) == 0:  # 为什么要奇数
+        tmp_data = tmp_data.iloc[:-1]
+    a = np.r_[
+        np.zeros(max_shift_num),
+        tmp_data[target_col].values,
+        np.zeros(max_shift_num),
+    ] / np.sign(
+        np.cov(tmp_data.transpose())[0, 1]
+    )  # 根据方差结果，变换风速的单位   sign 大于0 为1 小于0 为-1
+    v = tmp_data[col]
+    cov = np.correlate(a, v)  # 两个数组长度不同会错位点乘
+    lag = np.arange(-max_shift_num, max_shift_num + 1)
+    # Plot lag against covariance
+    if create_fig:
+        axes[0].plot(lag * 0.1, cov)
+        axes[0].set_ylabel("cov(w " + col_names[0] + ")")
+
+    lag_num = np.argmax(cov) - max_shift_num
+    with open(timelag_save_name, "a", encoding="utf-8") as f:
+        f.write(str(lag_num) + "\n")
+    # print(lag_num)
+    if lag_num < 0:
+        for column in col_names:
+            data[column][0:lag_num] = data[column][-lag_num:]
+            data[column][lag_num:] = np.nan
+
+    elif lag_num > 0:
+        for column in col_names:
+            data[column][lag_num:] = data[column][0:-lag_num]
+            data[column][0:lag_num] = np.nan
+
+    if show_fig:
+        if create_fig:
+            plt.show()
+        else:
+            fig.tight_layout()
+            fig.canvas.draw()
+
+    if save_fig:
+        fig.savefig(fig_name)
+
+
+# def fast_shift_lag(
+#     data,
+#     col_names,
+#     target_col,
+#     lag_lim=10,
+#     idx_range=[0, -1],
+#     show_fig=False,
+#     freq=10,
+#     create_fig=True,
+#     fig=None,
+#     axes=None,
+#     save_fig=False,
+#     fig_name=None,
+# ):
+#     """
+#     This function calls cov_maximization and shift the time lag.
+#
+#     Parameters
+#     ----------
+#     data: dict
+#         Input data.
+#     col_names: list of str
+#         Column names for shifting.
+#     target_col: str
+#         The column that other columns will shift towards to.
+#     lag_lim: int
+#         Lat time limits (second).
+#     idx_range: list of in
+#         Index range.
+#     show_fig: bool
+#         If true, show results in a figure.
+#     freq: int
+#         Measurement frequency.
+#
+#     Returns
+#     -------
+#
+#     """
+#     # Create handles for figure
+#
+#     if create_fig:
+#         fig, axes = plt.subplots(len(col_names), sharex=True)
+#
+#     max_shift_num = int(lag_lim * freq)
+#
+#     for idx, col in enumerate(col_names):
+#         tmp_data = data[[col, target_col]].dropna(how="any")
+#         if (len(tmp_data) % 2) == 0: # 为什么要奇数
+#             tmp_data = tmp_data.iloc[:-1]
+#         a = np.r_[
+#             np.zeros(max_shift_num),
+#             tmp_data[target_col].values,
+#             np.zeros(max_shift_num),
+#         ] / np.sign(np.cov(tmp_data.transpose())[0, 1]) # 根据方差结果，变换风速的单位   sign 大于0 为1 小于0 为-1
+#         v = tmp_data[col]
+#         cov = np.correlate(a, v) # 两个数组长度不同会错位点乘
+#         lag = np.arange(-max_shift_num, max_shift_num + 1)
+#         # Plot lag against covariance
+#         if show_fig:
+#             axes[idx].plot(lag * 0.1, cov)
+#             axes[idx].set_ylabel("cov(w" + col_names[idx] + ")")
+#
+#         lag_num = np.argmax(np.abs(cov)) - max_shift_num
+#         # print(lag_num)
+#         if lag_num < 0:
+#             data[col][0:lag_num] = data[col][-lag_num:]
+#             data[col][lag_num:] = np.nan
+#         elif lag_num > 0:
+#             data[col][lag_num:] = data[col][0:-lag_num]
+#             data[col][0:lag_num] = np.nan
+#
+#     if show_fig:
+#         if create_fig:
+#             plt.show()
+#         else:
+#             fig.tight_layout()
+#             fig.canvas.draw()
+#
+#     if save_fig:
+#         fig.savefig(fig_name)
+
+
+def shift_lag_max(
+    data,
+    col_names,
+    target_col,
+    lag_lim=10,
+    idx_range=[0, -1],
+    show_fig=False,
+    freq=10,
+    create_fig=True,
+    fig=None,
+    axes=None,
+    save_fig=False,
+    fig_name=None,
+):
+    """
+    This function calls cov_maximization and shift the time lag.
+    Parameters
+    ----------
+    data: dict
+        Input data.
+    col_names: list of str
+        Column names for shifting.
+    target_col: str
+        The column that other columns will shift towards to.
+    lag_lim: int
+        Lat time limits (second).
+    idx_range: list of int
+        Index range.
+    show_fig: bool
+        If true, show results in a figure.
+    freq: int
+        Measurement frequency.
+    Returns
+    -------
+    """
+    # Create handles for figure
+    if show_fig:
+        if create_fig:
+            fig, axes = plt.subplots(len(col_names), sharex=True)
+
+    max_shift_num = int(lag_lim * freq)
+
+    for idx, col in enumerate(col_names):
+        cov, lag = cov_maximization(
+            data, [col, target_col], lag_lim=lag_lim, idx_range=idx_range, freq=freq
+        )
+
+        # Plot lag against covariance
+        if show_fig:
+            axes[idx].plot(lag / freq, cov)
+            axes[idx].set_ylabel(col_names[idx])
+
+        lag_num = np.argmax(cov) - max_shift_num
+        if lag_num < 0:
+            data[col][0:lag_num] = data[col][-lag_num:]
+            data[col][lag_num:] = np.nan
+        elif lag_num > 0:
+            data[col][lag_num:] = data[col][0:-lag_num]
+            data[col][0:lag_num] = np.nan
+
+    if show_fig:
+        if create_fig:
+            plt.show()
+            if save_fig:
+                fig.savefig(fig_name)
+        else:
+            fig.tight_layout()
+            fig.canvas.draw()
+
+
+def shift_lag_avg(
+    data,
+    col_names,
+    target_col,
+    lag_lim=10,
+    idx_range=[0, -1],
+    show_fig=False,
+    freq=10,
+    create_fig=True,
+    fig=None,
+    axes=None,
+    avg_win=11,
+):
+    """
+    This function calls cov_maximization and shift the time lag.
+    Parameters
+    ----------
+    data: dict
+        Input data.
+    col_names: list of str
+        Column names for shifting.
+    target_col: str
+        The column that other columns will shift towards to.
+    lag_lim: int
+        Lat time limits (second).
+    idx_range: list of int
+        Index range.
+    show_fig: bool
+        If true, show results in a figure.
+    freq: int
+        Measurement frequency.
+    Returns
+    -------
+    """
+    # Create handles for figure
+    if show_fig:
+        if create_fig:
+            fig, axes = plt.subplots(len(col_names), sharex=True)
+
+    max_shift_num = int(lag_lim * freq)
+
+    for idx, col in enumerate(col_names):
+        cov, lag = cov_maximization(
+            data, [col, target_col], lag_lim=lag_lim, idx_range=idx_range, freq=freq
+        )
+        ma_cov = moving_average(cov, avg_win)
+        # Plot lag against covariance
+        if show_fig:
+            axes[idx].plot(lag * 0.1, cov)
+            axes[idx].plot(lag[int(avg_win / 2) : -int(avg_win / 2)] * 0.1, ma_cov)
+            axes[idx].set_ylabel(col_names[idx])
+
+        lag_num = int(np.argmax(ma_cov) - max_shift_num + np.floor(avg_win / 2))
+        if lag_num < 0:
+            data[col][0:lag_num] = data[col][-lag_num:]
+            data[col][lag_num:] = np.nan
+        elif lag_num > 0:
+            data[col][lag_num:] = data[col][0:-lag_num]
+            data[col][0:lag_num] = np.nan
+
+    if show_fig:
+        if create_fig:
+            plt.show()
+        else:
+            fig.tight_layout()
+            fig.canvas.draw()
+
+
+def shift_lag_offset(data, col_names, lag_offset, freq=10):
+    lag_num = int(lag_offset * freq)
+    for col in col_names:
+        if lag_num < 0:
+            data[col][0:lag_num] = data[col][-lag_num:]
+            data[col][lag_num:] = np.nan
+        elif lag_num > 0:
+            data[col][lag_num:] = data[col][0:-lag_num]
+            data[col][0:lag_num] = np.nan
+
+
+def calc_cospectra(data, col_names, freq=10):
+    """
+    Calculate normalized cospectra density. Detrend and Bell taper should always be performed before running this
+    function. For normal spectra calculation, use the same col_names.
+
+    Parameters
+    ----------
+    data: dict
+        Input data.
+    col_names: list of str
+        Column names for cospectra calculation.
+    freq: int
+        Measurement frequency (Hz), default = 10 Hz
+    Returns
+    -------
+    tuple (array, float, array)
+        (f, cov, cospectra)
+        f
+            frequency for the cospectra.
+        cov
+            covariance of the pair.
+        cospectra
+            Normalized cospectra density.
+    """
+
+    # Remove nan data
+    if col_names[0] == col_names[1]:
+        tmp_data = data[col_names[0]].interpolate().dropna(how="any")
+        x = tmp_data.values
+        y = tmp_data.values
+    else:
+        tmp_data = data[col_names].interpolate().dropna(how="any")
+        x = tmp_data[col_names[0]].values
+        y = tmp_data[col_names[1]].values
+    # x = tmp_x[(~np.isnan(tmp_x)) & (~np.isnan(tmp_y))]
+    # y = tmp_y[(~np.isnan(tmp_x)) & (~np.isnan(tmp_y))]
+    # print x, y
+
+    l = len(x)
+    # print l
+    # print len(y)
+
+    if l != len(y):
+        raise Exception("Length of data records must agree")
+    if l > 1:
+        # Bell taper the input data
+        x = bell_taper(x)
+        y = bell_taper(y)
+
+        # Calculate frequency bin according to the length of input data
+        if l % 2 == 0:
+            f = freq * np.linspace(0, 1, l + 1)[0:-2]
+        else:
+            f = freq * np.linspace(0, 1, l)
+
+        df = f[1]  # Frequency interval
+        f = f[1 : int(np.floor(l / 2))]  # Frequency up to Nyquist frequency
+
+        m = np.transpose(np.c_[x, y])
+        cov = np.cov(m)[1, 0]  # Covariance
+
+        # Calculate discrete Fourier transform
+        fft_x = np.fft.fft(x) / l
+        fft_y = np.fft.fft(y) / l
+        f = np.fft.fftfreq(l, 1.0 / freq)
+        Co = np.real(np.conj(fft_x) * fft_y)
+
+        if l % 2 == 1:
+            Co = 2 * Co[1 : int(np.floor(l / 2))] / cov
+            f = f[1 : int(np.floor(l / 2))]
+        else:
+            Co = np.r_[
+                2 * Co[1 : int(np.floor(l / 2))] / cov,
+                2 * Co[int(np.floor(l / 2)) + 1] / cov,
+            ]
+            f = np.r_[f[1 : int(np.floor(l / 2))], int(np.floor(l / 2)) + 1]
+
+        cospectra = Co / df
+        plt.loglog(f, cospectra)
+        plt.show()
+    else:
+        f = [1, 10]
+        cov = np.array([np.nan, np.nan])
+        cospectra = np.array([np.nan, np.nan])
+        Co = np.array([np.nan, np.nan])
+
+    return f, cov, cospectra, Co
+
+
+def shift_sonic_time(data, col_names, sonic_time_offset, freq=10):
+    """
+    Shift sonic time for synchronization.
+    Parameters
+    ----------
+    data: DataFrame
+        Input data containing at least 'u', 'v', 'w', and 'Ts'.
+    sonic_time_offset: float
+        Time in sec for shifting.
+    freq: float, default=10
+        Measurement frequency in Hz.
+
+    Returns
+    -------
+
+    """
+    # col_names = ['u', 'v', 'w', 'Ts']
+    lag_num = int(sonic_time_offset * freq)
+
+    for col in col_names:
+        if lag_num < 0:
+            data[col][0:lag_num] = data[col][-lag_num:]
+            data[col][lag_num:] = np.nan
+        elif lag_num > 0:
+            data[col][lag_num:] = data[col][0:-lag_num]
+            data[col][0:lag_num] = np.nan
+
+
+# %%
+def itc_test_w(obukhov_l, d, z, var_w, u_star, f):
+    """
+    Integral turbulence characteristics (itc) test.
+    Parameters
+    ----------
+    obukhov_l: float
+        Obukhov length.
+    d: float
+        Displacement height.
+    z: float
+        Height of the instrument.
+
+    Returns
+    -------
+    itc: float
+
+    """
+    stability_parameter = (z - d) / obukhov_l
+
+    if stability_parameter > 0.4:
+        sigma_uw_theory = 2.0 * np.abs(stability_parameter) ** 0.125
+    elif (stability_parameter < 0.4) & (stability_parameter > -0.2):
+        sigma_uw_theory = 0.21 * np.log(f / u_star) + 3.1
+    else:
+        sigma_uw_theory = 2.0 * np.abs(stability_parameter) ** 0.125
+
+    return (sigma_uw_theory - np.sqrt(var_w) / u_star) / sigma_uw_theory * 100
+
+
+def itc_test_u(obukhov_l, d, z, var_u, u_star, f):
+    """
+    Integral turbulence characteristics (itc) test.
+    Parameters
+    ----------
+    obukhov_l: float
+        Obukhov length.
+    d: float
+        Displacement height.
+    z: float
+        Height of the instrument.
+
+    Returns
+    -------
+    itc: float
+
+    """
+    stability_parameter = (z - d) / obukhov_l
+
+    if stability_parameter > 0.4:
+        sigma_uw_theory = 4.15 * (stability_parameter) ** 0.125
+    elif (stability_parameter < 0.4) & (stability_parameter > -0.2):
+        sigma_uw_theory = 0.44 * np.log(f / u_star) + 6.3
+    else:
+        sigma_uw_theory = 4.15 * np.abs(stability_parameter) ** 0.125
+
+    return (sigma_uw_theory - np.sqrt(var_u) / u_star) / sigma_uw_theory * 100
+
+
+def itc_test_t(obukhov_l, d, z, var_t, t_star, f):
+    """
+    Integral turbulence characteristics (itc) test.
+    Parameters
+    ----------
+    obukhov_l: float
+        Obukhov length.
+    d: float
+        Displacement height.
+    z: float
+        Height of the instrument.
+
+    Returns
+    -------
+    itc: float
+
+    """
+    stability_parameter = (z - d) / obukhov_l
+
+    if stability_parameter > 0.02:
+        sigma_uw_theory = 1.4 * (stability_parameter) ** -0.25
+    elif (stability_parameter < 0.02) & (stability_parameter > -0.062):
+        sigma_uw_theory = 0.5 * np.abs((stability_parameter)) ** -0.5
+    elif (stability_parameter < -0.062) & (stability_parameter > -0.1):
+        sigma_uw_theory = 1.0 * np.abs((stability_parameter)) ** (
+            -1.0 / 4
+        )  # swh modification： the denominator in handbook of micro meteorology page 192 is -1/4,rather than -1/3 here
+    else:
+        sigma_uw_theory = np.abs(stability_parameter) ** (-1.0 / 3)
+
+    return (sigma_uw_theory - np.sqrt(var_t) / t_star) / sigma_uw_theory * 100
+
+
+def randerr_salsky(data, col_pair, max_n=1800, f=10.0, T=18000):
+    len_data = len(data)
+    n_list = [max_n / 8, max_n / 4, max_n / 2, max_n]
+    e_wc = np.array([])
+    for n in n_list:
+        step = int(len_data / n)
+        tmp_err = np.array([])
+        for i in range(step):
+            tmp_data = data.iloc[i * n : (i + 1) * n]
+            tmp_err = np.r_[
+                tmp_err, np.cov(tmp_data[col_pair].dropna().transpose())[0, 1]
+            ]
+
+        e_wc = np.r_[e_wc, np.std(tmp_err)]
+
+    e_wc /= np.cov(data[col_pair].dropna().transpose())[0, 1]
+
+    coeff = np.polyfit((np.array(n_list) / f) ** (-0.5), e_wc, 1)
+    return np.polyval(coeff, T ** (-0.5))
+
+
+def autocov(data, col, p):
+    tmp_data = data[col].interpolate().dropna().values
+    tmp_data_shift = tmp_data[p:]
+    tmp_data = tmp_data[:-p]
+    return np.cov(np.c_[tmp_data, tmp_data_shift].transpose())[0, 1]
+
+
+def calculate_mix_flux_error(
+    air_prop,
+    err_xmr_stoch,
+    cov30,
+    MT,
+    gas_den_avg,
+    err_T_stoch,
+    scf_ch4,
+    scf_H,
+    err_scf=0.05,
+):
+    """
+    计算传播误差和随机误差 ,专门为mix 使用
+    注意：如果cov的位置发生变化，程序需要相应修改
+    Parameters
+    ----------
+    air_prop
+    err_xmr_stoch
+    cov30
+    data_10hz
+    alpha_v
+    spec_correction
+    err_h2o_stoch
+    MT
+    gas_den_avg
+    err_T_stoch
+
+    Returns
+    -------
+
+    """
+    term1 = ((air_prop["rho_air"]) ** 2) * (
+        ((err_xmr_stoch + 0.05) * cov30[2, 8] * scf_ch4 * 1e-6) ** 2
+    )  # ug/g*kg=mg   mg*1e-6 = kg
+
+    term3 = (MT) ** 2 * (
+        err_T_stoch
+        * cov30[2, 3]
+        * scf_H
+        * gas_den_avg["raw_CH4"]
+        * 16e-9
+        / air_prop["T_avg"]
+    ) ** 2
+    propagated_error_xmr = np.sqrt(term1 + term3) * 1e6 * 3600
+    raw_err_xmr = (
+        (err_xmr_stoch + err_scf) * cov30[2, 8] * scf_ch4 * air_prop["rho_air"] * 3600
+    )
+    print("term1", term1, "term3", term3)
+    print(
+        f"propagated_error_xmr :{propagated_error_xmr},raw_err_xmr:{raw_err_xmr}",
+        r",unit mg/m^2h",
+    )
+    return propagated_error_xmr, raw_err_xmr
+
+
+def calculate_flux_error(
+    err_rawCH4_stoch,
+    err_T_stoch,
+    err_h2o_stoch,
+    gas_den_avg,
+    data_10hz,
+    cov30,
+    mv,
+    air_prop,
+    MT,
+    targat_cov,
+    scf_ch4,
+    scf_h2o,
+    scf_H,
+    err_scf=0.05,
+):
+    """
+    计算传播误差和随机误差
+    注意：如果cov的位置发生变化，程序需要相应修改
+    Parameters
+    ----------
+    err_rawCH4_stoch
+    err_T_stoch
+    err_h2o_stoch
+    gas_den_avg
+    data_10hz
+    cov30
+    alpha_v
+    air_prop
+    spec_correction
+
+    Returns
+    -------
+    propagated_error:传播误差
+    raw_err:随机误差
+    """
+    term1 = (
+        np.mean(data_10hz["cf"]) ** 2
+        * ((err_rawCH4_stoch + err_scf) * targat_cov * scf_ch4 * 16e-9) ** 2
+    )
+
+    term2 = (
+        mv**2
+        * (
+            1.6077
+            * np.nanmean(data_10hz["raw_CH4"] * 16e-9)
+            / (air_prop["rho_air"] - gas_den_avg["H2O"] * 0.018)
+        )
+        ** 2
+        * ((err_h2o_stoch + err_scf) * cov30[2, 4] * scf_h2o * 0.018) ** 2
+    )
+    A = 1 + 1.6077 * gas_den_avg["H2O"] * 0.018 / (
+        air_prop["rho_air"] - gas_den_avg["H2O"] * 0.018
+    )
+    term3 = (
+        MT**2
+        * (A * np.nanmean(data_10hz["raw_CH4"] * 16e-9) / air_prop["T_avg"]) ** 2
+        * (err_T_stoch * cov30[2, 3] * scf_H) ** 2
+    )
+
+    propagated_error = np.sqrt(term1 + term2 + term3) * 1e6 * 3600
+    raw_err = (err_rawCH4_stoch + err_scf) * targat_cov * scf_ch4 * 16e-3 * 3600
+    print(f"propagated_error :{propagated_error},raw_err:{raw_err}", r",unit mg/m^2h")
+    print(f"term1 {term1},term2 {term2},term3 {term3}")
+    return propagated_error, raw_err
+
+
+def stoch_err_FS(data, col, m=100):
+    tmp_data = data[["w_rot", col]].dropna().values
+    n = len(tmp_data)
+    cov = np.cov(tmp_data.transpose())
+    sum_var = cov[0, 0] * cov[1, 1] + cov[0, 1] ** 2
+    for p in range(1, m):
+        tmp_data_w_shift1 = tmp_data[p:, 0]
+        tmp_data_w_shift2 = tmp_data[:-p, 0]
+        tmp_data_col_shift1 = tmp_data[p:, 1]
+        tmp_data_col_shift2 = tmp_data[:-p, 1]
+        sum_var += (
+            2
+            * np.cov(np.c_[tmp_data_w_shift1, tmp_data_w_shift2].transpose())[0, 1]
+            * np.cov(np.c_[tmp_data_col_shift1, tmp_data_col_shift2].transpose())[0, 1]
+            + 2
+            * np.cov(np.c_[tmp_data_w_shift1, tmp_data_col_shift2].transpose())[0, 1]
+            * np.cov(np.c_[tmp_data_col_shift1, tmp_data_w_shift2].transpose())[0, 1]
+        )
+    return np.sqrt(np.abs(sum_var) / n)
+
+
+def stoch_err(data, col):
+    tmp_data = data[["w_rot", col]].dropna()
+    n = len(tmp_data)
+    hn = int(n / 2)
+    a_1 = np.r_[
+        np.zeros(hn),
+        tmp_data["w_rot"].values - np.nanmean(tmp_data["w_rot"]),
+        np.zeros(hn),
+    ]
+    a = tmp_data["w_rot"] - np.nanmean(tmp_data["w_rot"])
+    v_1 = np.r_[
+        np.zeros(hn),
+        tmp_data[col].values - np.nanmean(tmp_data[col]),
+        np.zeros(hn),  # 这里又去趋势
+    ]
+    v = tmp_data[col] - np.nanmean(tmp_data[col])
+    cov_aa = np.correlate(a_1, a) / n
+    cov_vv = np.correlate(v_1, v) / n
+    cov_av = np.correlate(a_1, v) / n
+    cov_va = np.correlate(v_1, a) / n
+    return np.sqrt(np.abs(np.sum(cov_aa * cov_vv + cov_av * cov_va)) / n)
+
+
+def bin_log_spaced(f, cospectra, n, f_lim=None):
+    """
+    Bin cospectra into n log-spaced bins.
+
+    Parameters
+    ----------
+    f: array of float
+        Frequency vector calculated from calc_cospectra.
+    cospectra
+        Cospectra vector calculated from calc_cospectra.
+    n: int
+        Number of bins.
+    f_lim
+        Frequency limits for the bin. List should have two elements.
+    Returns
+    -------
+    f_out: array of float
+        Binned frequency.
+    cosp_out: array of float
+        Binned cospectra.
+    """
+
+    if f_lim is None:
+        min_f = np.min(f)
+        max_f = np.max(f)
+    else:
+        min_f = f_lim[0]
+        max_f = f_lim[1]
+
+    bounds = np.zeros((n + 1,))
+    bounds[0] = 0
+    bounds[1:n] = np.exp(np.linspace(np.log(min_f), np.log(max_f), n - 1))
+
+    f_out = np.zeros((n,))
+    cosp_out = np.zeros((n,))
+
+    for i in range(0, n):
+        bin = (f > bounds[i]) & (f < bounds[i + 1])
+        f_out[i] = np.exp((np.log(bounds[i]) + np.log(bounds[i + 1])) / 2)
+        cosp_out[i] = np.nanmean(cospectra[bin])
+
+    return f_out, cosp_out
+
+
+def avg_one_min_data(data, col_names, out_f_name, show_fig=False):
+    """
+    Calculate one-minute averaged data.
+
+    Parameters
+    ----------
+    data: dict
+        Input data.
+    col_names: list of str
+        Names of columns for averaging.
+    out_f_name: str
+        Output f name.
+    show_fig: bool
+        If True, show figure. Default False.
+    Returns
+    -------
+
+    """
+
+    one_min_data = chunk_data(data, t_window=1)
+    one_min_avg = {"Time": []}
+
+    # Create array for each
+    for col in col_names:
+        one_min_avg[col] = []
+
+    for data in one_min_data:
+
+        one_min_avg["Time"].append(data["Time"][300])  # Get the mid time
+
+        for col in col_names:
+            one_min_avg[col].append(np.nanmean(data[col]))  # Add new avg value
+
+    one_min_avg["Time"] = np.array(one_min_avg["Time"], dtype="datetime64")
+    for col in col_names:
+        one_min_avg[col] = np.array(one_min_avg[col])
+
+    if show_fig:
+        plot_time_series(one_min_avg, col_names, idx_range=[0, -1])
+
+    pickle.dump(one_min_avg, open(out_f_name, "w"))
+
+
+def bell_taper(x_in, alpha=0.1):
+    """
+    Bell tapering for the data block. A process of modifying a time series of data whereby the beginning and ending 10%
+    of the data points are smoothly reduced in amplitude to approach zero at the ends.
+    For more info: http://glossary.ametsoc.org/wiki/Bell_taper
+
+    Parameters
+    ----------
+    x_in: array of float
+        Time series for bell tapering, here an array should be passed in.
+    alpha: float
+        Proportion of the series to be tapered at each end of the series (default 0.1)
+    Returns
+    -------
+    x_out: array of float
+        Output results
+
+    """
+
+    l = len(x_in)
+    m = int(np.floor(alpha * l))
+
+    taper_func = 0.5 * (1 - np.cos(np.pi * (np.arange(0, m) + 0.5) / m))
+
+    x_out = np.copy(x_in)
+    x_out[0:m] = taper_func * x_out[0:m]
+    x_out[-m:] = taper_func[::-1] * x_out[-m:]
+
+    return x_out
+
+
+def detrend(data, col_names, method="linear"):
+    """
+    Remove trend from input data. Nan data will be considered as missing data.
+    Parameters
+    ----------
+    data: dict
+        Data for detrending.
+    col_names: list of str
+        Column names for detrending.
+    method: str
+        Detrending method, default is "linear"
+    Returns
+    -------
+
+    """
+    data_out = data.copy()
+
+    if method == "linear":
+        for col in col_names:
+            # print data_out[col]
+            idx = np.where(~np.isnan(data_out[col]))[0]
+            if len(idx) == 0:
+                print("Empty period.")
+                data_out[col] = data_out[col]
+            else:
+                y = data_out[col][idx]
+                # print idx, y
+                p = np.polyfit(idx, y, 1)
+                data_out[col] = (
+                    data_out[col] - p[1] - p[0] * np.arange(0, len(data_out[col]))
+                )
+    if method == "block_average":
+        for col in col_names:
+            data_out[col] = data[col] - np.nanmean(data[col])
+    if method == "slide windows":
+
+        windows_size = 9000
+
+        for col in col_names:
+            idx = np.where(~np.isnan(data_out[col]))[0]
+            rolling_mean = (
+                data_out[col]
+                .rolling(window=windows_size, center=True, min_periods=1)
+                .mean()
+            )
+            data_out[col][idx] = data_out[col][idx] - rolling_mean[idx]
+
+            # y=data_out[col][idx]
+            # l=len(y)
+            # slid_avg = []
+            # for i in range(l):
+            #     if i < (windows_size/2):
+            #         slid_avg.append(np.mean(y.iloc[:i+int(windows_size/2)]))
+            #     elif (l-i) < windows_size/2:
+            #         slid_avg.append(np.mean(y.iloc[i-int(windows_size/2):]))
+            #     else:
+            #         slid_avg.append(np.mean(y.iloc[i-int(windows_size/2):i+int(windows_size/2)]))
+            # slid_avg=np.array(slid_avg)
+            # data_out[col][idx] = data_out[col][idx]-slid_avg
+    return data_out
+
+
+def despike(data, col_names, lim, n=15, method="constant", diag=False):
+    """
+    Despike input data using median filter. If the value at given time has a deviation from median values of n nearby
+    data points, the value will be marked as NaN.
+
+    Parameters
+    ----------
+    data: dict
+        Input data.
+    col_names: list of str
+        Column names for despiking.
+    lim: array of float
+        A array lists the lim for excluding data arranged in accordance with
+        col_names
+    n: int
+        Size of median filter, default is 10
+    method: str
+        Choose from 'constant' (use constant to exclude spikes), 'std' (use
+        multiple of standard deviation to exlude spikes), or 'MAD' (use
+        algorithm proposed by Mauder et al. (2013) with the median absolute
+        deviation (MAD)).
+
+    Returns
+    -------
+
+    """
+
+    for idx, col in enumerate(col_names):
+        if method == "MAD":
+            med = np.nanmedian(data[col])
+            dev = np.abs(data[col] - med)
+            limit = np.nanmedian(dev) * lim[0] / 0.6745
+            data.loc[dev > limit, col] = np.nan
+        else:
+            idx_nonnan = ~np.isnan(data[col])
+
+            tmpData = data[col][idx_nonnan]
+
+            # Call scipy median filter
+            data_filt = scipy.ndimage.median_filter(tmpData, size=n)
+
+            # Calculate deviation from median filtered data
+            data_dev = np.abs(tmpData - data_filt)
+
+            # Replace spikes with nans
+            if method == "std":
+                tmpData[data_dev > lim[idx] * np.nanstd(data_dev)] = np.nan
+            if method == "constant":
+                tmpData[data_dev > lim[idx]] = np.nan
+
+            data[col][idx_nonnan] = tmpData
+
+            if diag:
+                print(np.nanstd(data[col]))
+                plt.plot(data_dev)
+                plt.show()
+
+
+def slice_data(data, idx_range=None, time_range=None):
+    """
+    Slice data according to index range.
+
+    Parameters
+    ----------
+    data: dict
+        Input data
+    idx_range: list
+        Index range with two elements
+    time_range: list
+        Time range
+
+    Returns
+    -------
+    dict
+        Sliced data
+    """
+    new_data = {}
+
+    # Get new data using index range.
+    if idx_range is not None:
+        for col in data.keys():
+            new_data[col] = data[col][idx_range[0] : idx_range[1]]
+
+    # Get new data using time range.
+    if time_range is not None:
+        for col in data.keys():
+            new_data[col] = data[col][
+                (data["Time"] > time_range[0]) & (data["Time"] < time_range[1])
+            ]
+    return new_data
+
+
+def chunk_data(data_in, t_window=30, start_time=None, correct_time=99.9, freq=10):
+    """
+    This function chunks data into pieces with according to time.
+
+    Parameters
+    ----------
+    data_in: dict
+        Input data.
+    t_window: float
+        Chunk data into blocks accordingly, unit: min.
+    start_time: datetime64
+        Start time of data block, if not set the first time stamp will be used.
+    correct_time: float
+        Factor to correct time scale difference (unit: ms)
+    freq: int
+        Measurement frequency
+    Returns
+    -------
+    data_out: dict
+        Data_out is a list containing all the time periods. In addition to original
+        dict keys, t_start for each period is also included.
+    """
+
+    # Define the t_start for the first data block
+    if start_time is not None:
+        t_start = start_time
+    else:
+        t_start = data_in["Time"][0]
+
+    l = t_window * freq * 60  # Length of each data block
+
+    # Convert t_window into numpy.timedelta64
+    t_window = np.timedelta64(t_window, "m")
+
+    data_out = []  #
+
+    while t_start < data_in["Time"][-1]:
+        block = {}  # Temperoral place to store data block
+
+        # Get time-based indexing mask
+        t_mask = (data_in["Time"] > t_start) & (data_in["Time"] < t_start + t_window)
+
+        # For some period the real measurement frequency is 9.99 Hz, following codes correct the time
+        # and put them into an array that has 18000 elements
+        if correct_time is not None:
+            tmp_time = data_in["Time"][t_mask]
+            # ms_since_start: milliseconds since start
+            ms_since_start = np.int32(
+                np.ceil(np.float64((tmp_time - t_start) / correct_time))
+            )  # Sometimes ceil works
+            if np.nansum(np.diff(ms_since_start) == 0) > 0:
+                ms_since_start = np.int32(
+                    np.floor(np.float64((tmp_time - t_start) / correct_time))
+                )  # Sometimes floor works
+            idx = np.where(ms_since_start < l)
+            ms_since_start = ms_since_start[ms_since_start < l]  # Remove >18000
+        else:
+            idx = np.arange(0, l)
+            ms_since_start = np.arange(0, l)
+
+        # Assign t_start value
+        block["t_start"] = t_start
+        # Pass input data into block
+        for key in data_in.keys():
+            block[key] = np.full((l,), np.nan)
+            block[key][ms_since_start] = data_in[key][t_mask][idx]
+
+        block["Time"] = np.arange(
+            t_start, t_start + t_window, np.timedelta64(100, "ms")
+        )
+        # Add block to output data
+        data_out.append(block)
+
+        # Move on to next period
+        t_start = t_start + t_window
+
+    # Delete last block if the number of elements < 12000
+    if np.sum(np.isnan(data_out[-1][key])) > 6000:
+        data_out = data_out[:-2]
+
+    return data_out
+
+
+def calculate_X_partials_rhovm(
+    T,
+    T_bar,
+    p,
+    rhovm,
+    rhov,
+    rhotilde,
+    kv_val,
+    kv_bar_val,
+    kc_num_val,
+    kc_den_val,
+    Kp_v,
+    Kt_v,
+    Kp_c,
+    Kt_c,
+    Rv,
+    alpha_v,
+    alpha_c,
+):
+    """
+    Calculates partial derivatives of X with respect to T and rho_vm.
+
+    Parameters:
+    -----------
+    T, T_bar      : Current and Mean Temperature
+    p, p_bar      : Current and Mean Pressure
+    rhovm         : Raw density (H2O_raw)
+    rhov          : Processed density (H2O_slow) at T
+    rhotilde      : Processed density (H2O_tilde) at T_bar
+    kv_val        : k^v(T)
+    kv_bar_val    : k^v(T_bar)
+    kc_num_val    : k^c(T, p, rhov)
+    kc_den_val    : k^c(T_bar, p, rhotilde)
+    Kp_v, Kt_v    : Sensitivities of k^v
+    Kp_c, Kt_c    : Sensitivities of k^c
+    Rv, alpha_v, c: Constants
+
+    Returns:
+    --------
+    dX_dT       : Partial X / partial T
+    dX_drhovm   : Partial X / partial rho_vm
+    """
+
+    # --- 1. Dependencies and Setup ---
+    # Grouping terms
+    Av = alpha_v * Kp_v * Rv * T * rhovm
+    Av_bar = alpha_v * Kp_v * Rv * T_bar * rhovm
+
+    denom_sq = (1 - Av) ** 2
+    denom_bar_sq = (1 - Av_bar) ** 2
+
+    # --- 2. Density Derivatives ---
+
+    # d(rho_v)/d(T)
+    num_rho_T = Kt_v * (1 - Av) + (kv_val - Av) * (Av / T)
+    d_rhov_dT = rhovm * num_rho_T / denom_sq
+
+    # d(rho_v)/d(rho_vm)
+    d_rhov_drhovm = (kv_val - Av) / denom_sq
+
+    # d(rhotilde)/d(rho_vm)
+    d_rhotilde_drhovm = (kv_bar_val - Av_bar) / denom_bar_sq
+
+    # --- 3. Component Derivatives (Term A: Ratio) ---
+    A_val = kc_num_val / kc_den_val
+
+    # A w.r.t T
+    d_pe_dT = alpha_c * Rv * (rhov + T * d_rhov_dT)
+    d_knum_dT = Kt_c + Kp_c * d_pe_dT
+    dA_dT = d_knum_dT / kc_den_val
+
+    # A w.r.t rho_vm
+    # d(k_num)/d(rho_vm)
+    d_pe_drhovm = alpha_c * Rv * T * d_rhov_drhovm
+    d_knum_drhovm = Kp_c * d_pe_drhovm
+
+    # d(k_den)/d(rho_vm)
+    d_pe_bar_drhovm = alpha_c * Rv * T_bar * d_rhotilde_drhovm
+    d_kden_drhovm = Kp_c * d_pe_bar_drhovm
+
+    # Quotient Rule for A
+    dA_drhovm = (d_knum_drhovm * kc_den_val - kc_num_val * d_kden_drhovm) / (
+        kc_den_val**2
+    )
+
+    # --- 4. Component Derivatives (Term B: Temp Ratio) ---
+    B_val = T / T_bar
+    dB_dT = 1.0 / T_bar
+    # dB_drhovm = 0
+
+    # --- 5. Component Derivatives (Term C: Pressure) ---
+    Nc = p - rhotilde * Rv * T_bar
+    Dc = p - rhov * Rv * T
+    C_val = Nc / Dc
+    Dc_sq = Dc**2
+
+    # C w.r.t T
+    d_Dc_dT = -Rv * (rhov + T * d_rhov_dT)
+    dC_dT = (-Nc * d_Dc_dT) / Dc_sq
+
+    # C w.r.t rho_vm
+    # d(Nc)/d(rho_vm)
+    d_Nc_drhovm = -Rv * T_bar * d_rhotilde_drhovm
+    # d(Dc)/d(rho_vm)
+    d_Dc_drhovm = -Rv * T * d_rhov_drhovm
+
+    # Quotient Rule for C
+    dC_drhovm = (d_Nc_drhovm * Dc - Nc * d_Dc_drhovm) / Dc_sq
+
+    # --- 6. Total Derivatives (Product Rule) ---
+    # X = A * B * C
+
+    dX_dT = (dA_dT * B_val * C_val) + (A_val * dB_dT * C_val) + (A_val * B_val * dC_dT)
+
+    dX_drhovm = (dA_drhovm * B_val * C_val) + (A_val * B_val * dC_drhovm)
+
+    return dX_dT, dX_drhovm
+
+
+def calc_avg(data, col_names):
+    """
+    Calculate block-averaged gas concentration (mass and molar density and mixing ratio).
+
+    Parameters
+    ----------
+    data: dict
+        Input data.
+    col_names: list of str
+        Column names of gases.
+    Returns
+    -------
+    avg_values: dict
+        Averaged results.
+    """
+
+    avg_values = {}
+
+    for col in col_names:
+        avg_values[col] = np.nanmean(data[col])  # 计算均值，会忽略所有nan
+
+    return avg_values
+
+
+def QC_QCL_NH3(
+    data, col_names, peak_loc, peak_thold, intensity_thold, t_window=1, freq=10
+):
+    """
+    Quality control for QCL NH3 sensor.
+
+    Parameters
+    ----------
+    data: dict
+        Input data.
+    col_names: list of str
+        Column name of the peak location and intensity
+    peak_loc: int
+        Set point of peak location.
+    peak_thold: int
+        Threshold for d4etermining unstable laser temperature.
+    intensity_thold:
+        Threshold of intensity for removing low intensity results.
+    t_window: int
+        Remove t_winodow before and after the unstable point, unit: min
+    freq: int
+        Measurement frequency.
+    Returns
+    -------
+    invalid_mask: list of bool
+        A mask that can be used to remove bad data.
+
+    """
+
+    # Find the indices for unstable temperature
+    b_idx = np.where(
+        (np.abs(data[col_names[0]] - peak_loc) > peak_thold)
+        | (data[col_names[1]] < intensity_thold)
+    )[0]
+
+    idx_window = t_window * 60 * freq
+
+    dlen = len(data[col_names[0]])  # Data length
+
+    # Mask b_idx +- t_window as invalid data
+    invalid_mask = np.zeros((dlen,), dtype="bool_")
+
+    for idx in b_idx:
+        idx_start = int(max(idx - idx_window, 0))
+        idx_end = int(min(idx + idx_window, dlen))
+        invalid_mask[idx_start:idx_end] = True
+
+    return invalid_mask
+
+
+def plot_time_series(
+    data,
+    col_names,
+    time_col="Time",
+    idx_range=None,
+    sharex=True,
+    label=None,
+    save_fig=False,
+    fig_name=None,
+):
+    """
+    This function provides basic function for plotting NH3 EC results in multiple
+    panels.
+
+    Parameters
+    ----------
+    data: dict
+        Data to plot.
+    col_names: list of str
+        Name of variables.
+    idx_range: list of int
+        Index range.
+    sharex: bool
+        if True subplots will share x-axis.
+    save_fig: bool
+        If True, figure will be saved.
+    Returns
+    -------
+    fig: object
+        Figure handle.
+    axes: list of objects
+        Handles of axes.
+
+    """
+
+    n = len(col_names)  # Number of panelsdx
+
+    # Create figure using subplots each panel has a height of 3 inches
+    fig, axes = plt.subplots(n, sharex=sharex, figsize=(8, n * 3))
+
+    # Convert type of Time data for x axis formatter
+    xdate = data[time_col].astype("M8[ms]").astype("O")
+
+    # Loop plotting each variable
+    for idx, ax in enumerate(axes):
+        if idx_range is None:
+            if label is None:
+                ax.plot(xdate, data[col_names[idx]])
+                ax.set_ylabel(col_names[idx])
+            else:
+                ax.plot(xdate, data[col_names[idx]])
+                ax.set_ylabel(label[idx])
+        else:
+            ax.plot(
+                xdate[idx_range[0] : idx_range[1]],
+                data[col_names[idx]][idx_range[0] : idx_range[1]],
+                ".",
+            )
+            ax.set_ylabel(col_names[idx])
+
+    xfmt = mdates.DateFormatter("%m-%d %H:%M")
+    axes[-1].xaxis.set_major_formatter(xfmt)
+    if save_fig:
+        pickle.dump(fig, open(fig_name, "w"))
+
+    plt.tight_layout()
+    plt.show()
+    return fig, axes
+
+
+def WPL_velocity(rho, T_avg, LE, H):
+    """
+    Calculate WPL velocity. Using method describe on Pg. 129 - 130, Handbook of
+    Micrometeorology(Lee et al.).
+
+    Parameters
+    ----------
+    rho: float
+        Air density.
+    T_avg: float
+        Air temperature.
+    LE: float
+        Latent heat flux.
+    H: float
+        Snesible heat flux.
+
+    Returns
+    -------
+    w_WPL: float
+        WPL air velocity term.
+    """
+    return LE / rho * R_d / R_w / L_v + H / rho / C_p / T_avg
+
+
+def combine_output_data(
+    data_out, target_gas, Time, air_prop, gas_den, tur_flux, sst, itc, foot
+):
+    """
+    Combine results from different functions.
+
+    Parameters
+    ----------
+    data_out: dict
+        A dict to put results in. Keys: Time, T_avg, rho_avg, q_avg, p_avg, e, es, RH,
+        theta_v_avg, H2O_avg, CO2_avg, NH3_avg, tau, H, LE, F_CO2, F_H2O, F_NH3,
+        w_WPL, TKE, L
+    air_prop: dict
+        Results of air properties.
+    gas_den: dict
+        Averaged gas density results.
+    tur_flux: dict
+        Results of turbulent fluxes.
+    Returns
+    -------
+
+    """
+    data_out["Time"].append(Time)
+    data_out["T_avg"].append(air_prop["T_avg"])
+    data_out["rho_air"].append(air_prop["rho_air"])
+    data_out["q_avg"].append(air_prop["q_avg"])
+    data_out["p_avg"].append(air_prop["p_avg"])
+    data_out["e"].append(air_prop["e"])
+    data_out["es"].append(air_prop["es"])
+    data_out["RH"].append(air_prop["RH"])
+    data_out["theta_v_avg"].append(air_prop["theta_v_avg"])
+    data_out["H2O_avg"].append(gas_den["H2O"])
+    data_out["CO2_avg"].append(gas_den["CO2"])
+    data_out[target_gas + "_avg"].append(gas_den[target_gas])
+    data_out["tau"].append(tur_flux["tau"])
+    data_out["H"].append(tur_flux["H"])
+    data_out["LE"].append(tur_flux["LE"])
+    data_out["F_CO2"].append(tur_flux["F_CO2"])
+    data_out["F_H2O"].append(tur_flux["F_H2O"])
+    data_out["F_" + target_gas].append(tur_flux["F_" + target_gas])
+    data_out["w_WPL"].append(tur_flux["w_WPL"])
+    data_out["TKE"].append(tur_flux["TKE"])
+    data_out["L"].append(tur_flux["L"])
+    data_out["SST_T"].append(sst["wT"])
+    data_out["SST_H2O"].append(sst["wH2O"])
+    data_out["SST_CO2"].append(sst["wCO2"])
+    data_out["SST_" + target_gas].append(sst["w" + target_gas])
+    data_out["ITC"].append(itc)
+    data_out["u_star"].append(tur_flux["u_star"])
+    data_out["wind_direction"].append(tur_flux["wind_direction"])
+    data_out["wind_speed"].append(tur_flux["wind_speed"])
+    data_out["sigma_w"].append(tur_flux["sigma_w"])
+    data_out["x10"].append(foot["x10"])
+    data_out["x30"].append(foot["x30"])
+    data_out["x50"].append(foot["x50"])
+    data_out["x70"].append(foot["x70"])
+    data_out["x90"].append(foot["x90"])
+
+
+def read_TOA5(
+    file: object,
+    time_col: object = "Time",
+    time_zone: object = -5,
+    var_list: object = [
+        "Time",
+        "RECORD",
+        "u",
+        "v",
+        "w",
+        "CO2",
+        "H2O",
+        "Ts",
+        "p",
+        "diag_csat",
+        "agc",
+    ],
+) -> object:
+    """
+    This function reads TOA files. This type of f is usually used by MSU.
+    Parameters
+    ----------
+    files: list
+        Filenames of the TOA files.
+    var_list: list
+        Variable names. Default=["Time", "RECORD", "u", "v", "w", "CO2",
+               "H2O", "Ts", "p", "diag_csat", "agc"].
+    time_zone: int
+        Time zone correction. Default=-5.
+
+    Returns
+    -------
+    data: dict
+        Output dict contains Ts, u, v, w, CO2, H2O, T, P, diag_csat, and agc.
+
+    """
+    data = pd.read_csv(
+        file,
+        # skiprows=[0, 2, 3],
+        low_memory=False,
+        # names=var_list,
+        parse_dates=True,
+        na_values="NAN",
+    )
+
+    dateTime = data["TIMESTAMP"].str.split(":", expand=True)
+    data["TIMESTAMP"] = (
+        pd.to_datetime(dateTime[0], format="%Y-%m-%d %H")
+        + pd.to_timedelta(dateTime[1].astype("float"), unit="minute")
+        + pd.to_timedelta(dateTime[2].astype("float"), unit="s")
+    )
+
+    data.set_index(time_col, drop=True, inplace=True)
+
+    return data
+
+
+def data_append(data_in, data_add):
+    """
+    This function appends two dict like data together. No returns.
+    Parameters
+    ----------
+    data_in: dict
+        Input data, and it will be appended.
+    data_add: dict
+        Data to be added to input data.
+
+    Returns
+    -------
+
+    """
+
+    for col in data_in.keys():
+        data_in[col].append(data_add[col])
+
+
+def create_output_data(target_gas):
+    """
+    Create the output dictionary.
+    Returns
+    -------
+
+    """
+    data_out = {
+        "Time": [],
+        "T_avg": [],
+        "rho_air": [],
+        "q_avg": [],
+        "p_avg": [],
+        "e": [],
+        "es": [],
+        "RH": [],
+        "theta_v_avg": [],
+        "H2O_avg": [],
+        "CO2_avg": [],
+        target_gas + "_avg": [],
+        "tau": [],
+        "H": [],
+        "LE": [],
+        "F_CO2": [],
+        "F_H2O": [],
+        "F_" + target_gas: [],
+        "w_WPL": [],
+        "TKE": [],
+        "L": [],
+        "SST_T": [],
+        "SST_H2O": [],
+        "SST_CO2": [],
+        "SST_" + target_gas: [],
+        "ITC": [],
+        "u_star": [],
+        "wind_direction": [],
+        "wind_speed": [],
+        "sigma_w": [],
+        "x10": [],
+        "x30": [],
+        "x50": [],
+        "x70": [],
+        "x90": [],
+    }
+
+    return data_out
+
+
+def plot_time_series_pd(
+    data,
+    col_names,
+    fig_size=(6, 4),
+    sharex=True,
+    labels=None,
+    time_span="Days",
+    create_fig=True,
+    fig=None,
+    axes=None,
+):
+    """
+    Plot time series for Pandas DataFrame.
+    Parameters
+    ----------
+    data: DataFrame
+        Input data frame.
+    col_names: list of str
+        Names of columns to be plotted.
+    fig_size: tuple, default=(6,4)
+        Figure size parameters to be passed to plt.subplots
+    sharex: bool, default=True
+        If True, share a-axis.
+    time_span: str, default='Days'
+        Time span of the time series, should be one of the following:
+        'Months', 'Days', 'Hours', and 'Minutes'.
+
+    Returns
+    -------
+    fig: handle
+        Figure handle.
+    axes: list of handles
+        Axes handles.
+
+    """
+
+    # Create
+    if create_fig:
+        fig, axes = plt.subplots(len(col_names), figsize=fig_size, sharex=sharex)
+
+    if labels is None:
+        labels = col_names
+
+    for ax, col, label in zip(axes, col_names, labels):
+        ax.plot_date(data.index, data[col], "-", label=label)
+        ax.set_ylabel(label)
+
+    plt.setp(ax.get_xticklabels(), visible=True)
+    # Modify date formatter according to time span.
+    if time_span == "Months":
+        ax.xaxis.set_major_locator(mdates.MonthLocator(interval=1))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
+    if time_span == "Weeks":
+        ax.xaxis.set_major_locator(mdates.DayLocator(interval=2))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%m-%d"))
+
+    if time_span == "Days":
+        ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%m-%d"))
+
+    if time_span == "Hours":
+        ax.xaxis.set_major_locator(mdates.HourLocator(interval=1))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%m-%d %H:%M"))
+
+    if time_span == "Minutes":
+        ax.xaxis.set_major_locator(mdates.MinuteLocator(interval=5))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+
+    if create_fig:
+        plt.show()
+    else:
+        fig.autofmt_xdate()
+        fig.tight_layout()
+        fig.canvas.draw()
+
+    return fig, axes
+
+
+def stationarity_test(data, col_pairs, n=7):
+    """
+    Calculates parameters for stationarity test. Data will be sliced into n
+    sub-array, and SST will be calculated. sst = (mean(cov_sub) - cov)/cov * 100.
+    Parameters
+    ----------
+    data: DataFrame
+        Input data.
+    col_pairs: list of list of str
+        Names of columns for the calculation.
+    n: int
+        Number of sub arrays.
+
+    Returns
+    -------
+    sst: dict-like
+        Contains sst results for given columns.
+
+    """
+    tmp_data = data.copy()
+    sst = {}
+
+    # Get length of the data
+    l = len(tmp_data[col_pairs[0][0]])
+
+    # Use linspace to get n+1 index for slices and combine them to range
+    idx = np.floor(np.linspace(0, l, num=n)).astype(int)
+    # ranges = zip(idx[0:-1], idx[1:]) # 源代码，这条只能被历遍一次
+    ranges = list(zip(idx[0:-1], idx[1:]))
+    # Initiate an array to store covariances of sub slices.
+    cov_sub = np.full((n,), np.nan)
+
+    # Loop through pairs
+    for pair in col_pairs:
+        # Calculate covariance for the pair
+        m = np.c_[tmp_data[pair[0]], tmp_data[pair[1]]].T
+        cov = nancov(m)[0, 1]
+        # Loop through sub slices
+        for i, rng in enumerate(ranges):
+            m = np.c_[
+                tmp_data[pair[0]].values[rng[0] : rng[1]],
+                tmp_data[pair[1]].values[rng[0] : rng[1]],
+            ].T
+            cov_sub[i] = nancov(m)[0, 1]
+
+        sst[pair[0] + pair[1]] = (np.nanmean(cov_sub) - cov) / cov * 100
+
+    return sst
+
+
+def itc_test(data, obukhov_l, d, z, var_w2, u_star):
+    """
+    Integral turbulence characteristics (itc) test.
+    Parameters
+    ----------
+    data: DataFrame
+        Input data.
+    obukhov_l: float
+        Obukhov length.
+    d: float
+        Displacement height.
+    z: float
+        Height of the instrument.
+
+    Returns
+    -------
+    itc: float
+
+    """
+    stability_parameter = (z - d) / obukhov_l
+
+    if stability_parameter > 1:
+        sigma_uw_theory = 2
+    elif stability_parameter < 0.032:
+        sigma_uw_theory = 1.3
+    else:
+        sigma_uw_theory = (
+            2 * np.abs(stability_parameter) ** 0.125
+        )  # 0.032 <= |z/L| <= 1
+
+    return (sigma_uw_theory - np.sqrt(var_w2)) / u_star / sigma_uw_theory * 100
+
+
+def count_non_nan(x):
+    """
+    Count total number of non-nan values.
+    Parameters
+    ----------
+    x: array-like
+
+    Returns
+    -------
+    count: int
+    """
+    return np.sum(~np.isnan(x)).astype("int64")
+
+
+def calc_turbulent_flux_pd(
+    data,
+    target_gas,
+    d,
+    z,
+    alpha_v,
+    p_cal,
+    T_cal,
+    df_cf,
+    t_window="30min",
+    save_30min=False,
+    save_all=False,
+    show_fig=True,
+    calc_Ts=False,
+    lag_lim=20,
+    diag=False,
+    create_fig=True,
+    fig=None,
+    axes=None,
+):
+    """
+    Calculate turbulent fluxes using Pandas DataFrame.
+
+    Parameters
+    ----------
+    data: DataFrame
+        Input DataFrame, usually should contain data for one day.
+    target_gas: str
+        Name of target gas of QCL sensor.
+    d: float
+        Displacement height, unit: m.
+    z: flozt
+        Tower height, unit: m.
+    alpha_v:
+        Foreign gas broadening coefficient for H2O.
+    p_cal: float
+        Calibration pressure in kPa.
+    T_cal:
+        Calibration temperature in K.
+    df_cf: DataFrame
+        DataFrame that contains information for spectroscopic correction.
+    t_window: str, default='30min'
+        Time window for average and calculation of fluxes.
+    save_30min: bool, default=False
+        If true, save 30-min data to individual csv f.
+    save_all: bool. default=False
+        If true, save combined data into one csv f.
+    show_fig: bool, default=True
+        If true, show figures for diagnostics.
+    calc_Ts: bool, default=False
+        If true, onvert sound speed to sonic temperature.
+    lag_lim: int, default=20
+        Limit of lag time in second.
+
+    Returns
+    -------
+    block_data_out: dict
+        Dict contains tau, H, LE, F_CO2, F_H2O, F_target_gas, w_WPL, L,
+        u_star, TKE, T_avg, rho_air, theta_v_avg, e, es, RH, SST, and ITC
+    cospectra_out: dict
+        Dict contains wCO2, wH2O, w+target_gas, wT, L, and u_star
+
+    """
+    # Despike input data.
+    block_data_out = create_output_data(target_gas)
+    cospectra_out = []
+    if calc_Ts:
+        data["Ts"] = calc_sonic_T(data["c"])
+
+    despike(
+        data,
+        [target_gas, "H2O", "CO2", "u", "v", "w", "Ts"],
+        [10, 200, 5, 3, 3, 3, 3],
+        n=10,
+    )
+
+    # Count valid data number for target gas
+    count = data.resample(t_window).apply(count_non_nan)
+    t_delta = pd.to_timedelta(t_window)
+
+    # Get interp2d object for spectroscopic correction.
+    spec_correction = LinearNDInterpolator(
+        np.c_[df_cf["p_grid"], df_cf["t_grid"]], df_cf["correction_factor"]
+    )
+
+    for t_idx in count.index:
+        if sum(count.loc[t_idx, [target_gas, "CO2", "H2O", "w", "Ts"]] > 12000) == 5:
+
+            tmp_data = data[t_idx : t_idx + t_delta]
+
+            shift_lag_max(
+                tmp_data,
+                [target_gas, "H2O", "CO2"],
+                "w",
+                lag_lim=lag_lim,
+                show_fig=show_fig,
+                create_fig=create_fig,
+                fig=fig,
+                axes=axes,
+            )
+
+            tur_flux, air_prop, gas_den_avg, cospectra, sst, itc = calc_turflux_30min(
+                tmp_data,
+                t_idx,
+                target_gas,
+                d,
+                z,
+                alpha_v,
+                p_cal,
+                T_cal,
+                spec_correction,
+            )
+
+        else:
+            tur_flux, air_prop, gas_den_avg, cospectra, sst, itc = fill_null(target_gas)
+
+        combine_output_data(
+            block_data_out,
+            target_gas,
+            t_idx.to_datetime(),
+            air_prop,
+            gas_den_avg,
+            tur_flux,
+            sst,
+            itc,
+        )
+        cospectra_out.append(cospectra)
+
+    if save_all:
+        data.to_csv(target_gas + "_L2_all_" + t_idx.strftime("%Y-%m-%dT%H:%M") + ".csv")
+
+    return block_data_out, cospectra_out
+
+
+def calc_turflux_30min(
+    tmp_data,
+    t_idx,
+    target_gas,
+    d,
+    z,
+    rough_len,
+    alpha_v,
+    p_cal,
+    T_cal,
+    spec_correction,
+    save_30min=False,
+    cospec_cal=True,
+):
+    """
+
+    Parameters
+    ----------
+    data: DataFrame
+        Input DataFrame, usually should contain data for one day.
+    target_gas: str
+        Name of target gas of QCL sensor.
+    d: float
+        Displacement height, unit: m.
+    z: flozt
+        Tower height, unit: m.
+    rough_len: float
+        Roughness length unit: m.
+    alpha_v:
+        Foreign gas broadening coefficient for H2O.
+    p_cal: float
+        Calibration pressure in kPa.
+    T_cal:
+        Calibration temperature in K.
+    spec_correction: scipy.interpolate object
+        A function that returns interpolated values.
+    t_window: str, default='30min'
+        Time window for average and calculation of fluxes.
+    save_30min: bool, default=False
+        If true, save 30-min data to individual csv f.
+    save_all: bool. default=False
+        If true, save combined data into one csv f.
+    calc_Ts: bool, default=False
+        If true, onvert sound speed to sonic temperature.
+
+    Returns
+    -------
+    tur_flux: dict
+        Turbulent flux results.
+    air_prop: dict
+        Air properties.
+    gas_den_avg: dict
+        Gas density averaged for 30 min.
+    cospectra: dict
+        Cospectra output.
+    sst: dict
+        Stationarity test results.
+    itc: dict
+        Integrated turbulence test results.
+    foot: dict
+        Footprint results, containing x10, x30, x50, x70, and x90.
+
+    """
+    if save_30min:
+        tmp_data.to_csv(
+            target_gas + "_L2_30min_" + t_idx.strftime("%Y-%m-%dT%H:%M") + ".csv"
+        )
+
+    (
+        tmp_data["u_rot"],
+        tmp_data["v_rot"],
+        tmp_data["w_rot"],
+        tmp_data["theta"],
+        tmp_data["phi"],
+    ) = rotate_wind_vector(tmp_data["u"], tmp_data["v"], tmp_data["w"], "TR", k=None)
+
+    # Convert unit of gas to mol/m^3
+    tmp_data["H2O"] = tmp_data["H2O"] * 1e-3
+    tmp_data["CO2"] = tmp_data["CO2"] * 1e-3
+    tmp_data[target_gas] = tmp_data[target_gas] * mixRatio2molDen(1e-9, p_cal, T_cal)
+
+    air_prop, tmp_data["theta_v"], tmp_data["q"], tmp_data["T"], tmp_data["e"] = (
+        calc_air_properties(tmp_data["Ts"], tmp_data["H2O"], tmp_data["p"])
+    )
+
+    # Get mixing ratio of gases for WPL correction
+
+    tmp_data["x_H2O"] = molar_den2mixing(
+        tmp_data["H2O"], tmp_data["p"], tmp_data["T"], tmp_data["e"]
+    )
+    tmp_data["x_CO2"] = molar_den2mixing(
+        tmp_data["CO2"], tmp_data["p"], tmp_data["T"], tmp_data["e"]
+    )
+
+    # Spectroscopic correction
+    p_e = tmp_data["p"] * (1 + alpha_v * tmp_data["x_H2O"]) * 10.0
+    T = tmp_data["T"]
+    cf = spec_correction(p_e.values, T)
+
+    tmp_data[target_gas] = tmp_data[target_gas] / cf
+
+    tmp_data["x_" + target_gas] = molar_den2mixing(
+        tmp_data[target_gas], tmp_data["p"], tmp_data["T"], tmp_data["e"]
+    )
+
+    gas_den_avg = calc_avg(tmp_data, [target_gas, "H2O", "CO2"])
+
+    tmp_data = detrend(
+        tmp_data, [target_gas, "H2O", "CO2", "T", "u_rot", "v_rot", "w_rot"]
+    )
+
+    tur_flux = calc_turbulent_flux(
+        tmp_data, air_prop, gas_den_avg, add_gas=[target_gas]
+    )
+
+    itc = itc_test(
+        tmp_data,
+        tur_flux["L"],
+        d,
+        z,
+        np.nanvar(tmp_data["w"] ** 2.0),
+        tur_flux["u_star"],
+    )
+
+    sst = stationarity_test(
+        tmp_data, [["w", "T"], ["w", "H2O"], ["w", "CO2"], ["w", target_gas]], 6
+    )
+
+    foot = footprint_kljun04(tur_flux["sigma_w"], tur_flux["u_star"], z, d, rough_len)
+
+    if cospec_cal:
+        cospectra = cosp_analysis(
+            tmp_data,
+            [["w", "T"], ["w", "H2O"], ["w", "CO2"], ["w", target_gas]],
+            t_idx.to_datetime(),
+        )
+        cospectra["L"] = tur_flux["L"]
+        cospectra["u_star"] = tur_flux["u_star"]
+        cospectra["sst"] = sst
+        cospectra["ist"] = itc
+        cospectra["F_target"] = tur_flux["F_" + target_gas]
+    else:
+        cospectra = ["NA"]
+
+    return tur_flux, air_prop, gas_den_avg, cospectra, sst, itc, foot
+
+
+def customized_box_plot(
+    percentiles,
+    fig,
+    axes,
+    redraw=True,
+    solid_whisker=True,
+    same_color=None,
+    *args,
+    **kwargs,
+):
+    """
+    Generates a customized boxplot based on the given percentile values
+    """
+
+    n_box = len(percentiles)
+
+    box_plot = axes.boxplot(
+        [
+            [-9, -4, 2, 4, 9],
+        ]
+        * n_box,
+        *args,
+        **kwargs,
+    )
+    # Creates len(percentiles) no of box plots
+
+    min_y, max_y = float("inf"), -float("inf")
+
+    for box_no, (q1_start, q2_start, q3_start, q4_start, q4_end) in enumerate(
+        percentiles
+    ):
+
+        # Lower cap
+        box_plot["caps"][2 * box_no].set_ydata([q1_start, q1_start])
+        # xdata is determined by the width of the box plot
+
+        # Lower whiskers
+        box_plot["whiskers"][2 * box_no].set_ydata([q1_start, q2_start])
+        if solid_whisker:
+            box_plot["whiskers"][2 * box_no].set_linestyle("-")
+
+        # Higher cap
+        box_plot["caps"][2 * box_no + 1].set_ydata([q4_end, q4_end])
+
+        # Higher whiskers
+        box_plot["whiskers"][2 * box_no + 1].set_ydata([q4_start, q4_end])
+        if solid_whisker:
+            box_plot["whiskers"][2 * box_no + 1].set_linestyle("-")
+
+        # Box
+        box_plot["boxes"][box_no].set_ydata(
+            [q2_start, q2_start, q4_start, q4_start, q2_start]
+        )
+
+        # Median
+        box_plot["medians"][box_no].set_ydata([q3_start, q3_start])
+
+        # The y axis is rescaled to fit the new box plot completely with 10%
+        # of the maximum value at both ends
+        axes.set_ylim([min_y * 1.1, max_y * 1.1])
+
+    if same_color:
+        plt.setp(box_plot["boxes"], color=same_color)
+        plt.setp(box_plot["whiskers"], color=same_color)
+        plt.setp(box_plot["medians"], color=same_color)
+
+    # If redraw is set to true, the canvas is updated.
+    if redraw:
+        fig.canvas.draw()
+
+
+def composite_analysis(
+    data, col_names, label, q=[5, 25, 50, 75, 95], plot_mean=True, filename=None
+):
+    data["hours"] = data.index.hour
+    composite_results = {}
+    fig, axes = plt.subplots(
+        len(col_names), 1, sharex=True, figsize=(10, 3 * len(col_names))
+    )
+    for idx, col in enumerate(col_names):
+        composite_results[col] = []
+        perctls = []
+        mean_vals = []
+        counts = []
+        mid_vals = []
+        for h in range(0, 24, 1):
+            x = data[col][(data["hours"] == h) & ~np.isnan(data[col])] - 0.5
+            composite_results[col].append(x)
+            if len(x) > 0:
+                perctls.append(
+                    (
+                        np.percentile(x, q[0]),
+                        np.percentile(x, q[1]),
+                        np.percentile(x, q[2]),
+                        np.percentile(x, q[3]),
+                        np.percentile(x, q[4]),
+                    )
+                )
+            else:
+                perctls.append((np.nan, np.nan, np.nan, np.nan, np.nan))
+            mean_vals.append(np.nanmean(x))
+            counts.append(len(x))
+            mid_vals.append(np.median(x))
+
+        top = np.nanmax(np.array(perctls))
+        bot = np.nanmin(np.array(perctls))
+        top = top + (top - bot) * 0.25
+        bot = bot - (top - bot) * 0.05
+
+        customized_box_plot(perctls, fig, axes=axes[idx], same_color="black")
+        axes[idx].plot(range(1, 25), mean_vals, "r.-")
+        axes[idx].set_ylabel(label[idx])
+        axes[idx].set_ylim([bot, top])
+        for h, count, mid_val, mean_val in zip(
+            range(1, 25), counts, mid_vals, mean_vals
+        ):
+            axes[idx].text(
+                h,
+                top - 0.08 * (top - bot),
+                str(count),
+                horizontalalignment="center",
+                size="x-small",
+                color="blue",
+            )
+            axes[idx].text(
+                h,
+                top - 0.13 * (top - bot),
+                str(np.round(mid_val, 1)),
+                horizontalalignment="center",
+                size="x-small",
+                color="black",
+            )
+            axes[idx].text(
+                h,
+                top - 0.18 * (top - bot),
+                str(np.round(mean_val, 1)),
+                horizontalalignment="center",
+                size="x-small",
+                color="red",
+            )
+        axes[idx].text(
+            -1.5,
+            top - 0.08 * (top - bot),
+            "Count",
+            horizontalalignment="center",
+            size="x-small",
+            color="blue",
+        )
+        axes[idx].text(
+            -1.5,
+            top - 0.13 * (top - bot),
+            "Median",
+            horizontalalignment="center",
+            size="x-small",
+            color="black",
+        )
+        axes[idx].text(
+            -1.5,
+            top - 0.18 * (top - bot),
+            "Mean",
+            horizontalalignment="center",
+            size="x-small",
+            color="red",
+        )
+
+    axes[idx].set_xlabel("Local time (hour)")
+    fig.tight_layout()
+    fig.savefig(filename, format="png", dpi=600)
+    plt.show()
+
+
+def composite_analysis_count(
+    data,
+    col_name,
+    label,
+    q=[5, 25, 50, 75, 95],
+    plot_mean=True,
+    filename=None,
+    figsize=(5, 4),
+):
+    data["hours"] = data.index.hour
+    composite_results = {}
+    fig = plt.figure(figsize=figsize)
+    ax = plt.subplot2grid((7, 1), (0, 0), rowspan=5)
+    composite_results[col_name] = []
+    perctls = []
+    mean_vals = []
+    counts = []
+    mid_vals = []
+    for h in range(0, 24, 1):
+        x = data[col_name][(data["hours"] == h) & ~np.isnan(data[col_name])]
+        composite_results[col_name].append(x)
+        if len(x) > 0:
+            perctls.append(
+                (
+                    np.percentile(x, q[0]),
+                    np.percentile(x, q[1]),
+                    np.percentile(x, q[2]),
+                    np.percentile(x, q[3]),
+                    np.percentile(x, q[4]),
+                )
+            )
+        else:
+            perctls.append((np.nan, np.nan, np.nan, np.nan, np.nan))
+        mean_vals.append(np.nanmean(x))
+        counts.append(len(x))
+        mid_vals.append(np.median(x))
+
+    top = np.nanmax(np.array(perctls))
+    bot = np.nanmin(np.array(perctls))
+    top = top + (top - bot) * 0.25
+    bot = bot - (top - bot) * 0.05
+
+    customized_box_plot(perctls, fig, axes=ax, same_color="black")
+    ax.plot([0, 24], [0, 0], "k-.")
+    ax.plot(
+        np.arange(1, 25), mean_vals, "ro-", markerfacecolor="None", markeredgecolor="r"
+    )
+    ax.set_ylabel(label)
+    ax.set_ylim([bot, top])
+    # ax.set_xlabel('Local time (hour)')
+    plt.xticks(
+        np.arange(0, 25, 4) + 0.5,
+        ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00", "24:00"],
+    )
+
+    ax = plt.subplot2grid((7, 1), (5, 0), rowspan=2)
+    ax.bar(range(0, 24), counts, width=1.0, facecolor="#66aad7", edgecolor="k")
+    ax.set_ylabel("# of sample")
+    ax.set_yticks([0, 50, 100])
+    plt.xticks(
+        range(0, 25, 4), ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00", "24:00"]
+    )
+    ax.set_xlabel("Local time (h)")
+    ax.set_xlim([0, 24])
+    fig.tight_layout()
+    plt.subplots_adjust(hspace=1.2)
+    fig.savefig(filename, format="png", dpi=600)
+    plt.show()
+
+
+def fill_null(target_gas):
+    """
+    Fill np.nan to tur_flux, air_prop, cospectra, sst, itc for combine final
+    output.
+
+    Returns
+    -------
+    tur_flux: dict
+        Turbulent flux results.
+    air_prop: dict
+        Air properties.
+    gas_den_avg: dict
+        Gas density averaged for 30 min.
+    cospectra: dict
+        Cospectra output.
+    sst: dict
+        Stationarity test results.
+    itc: dict
+        Integrated turbulence test results.
+
+    """
+    tur_flux = {
+        "tau": np.nan,
+        "H": np.nan,
+        "LE": np.nan,
+        "F_CO2": np.nan,
+        "F_H2O": np.nan,
+        "F_" + target_gas: np.nan,
+        "w_WPL": np.nan,
+        "TKE": np.nan,
+        "L": np.nan,
+        "u_star": np.nan,
+        "wind_speed": np.nan,
+        "sigma_w": np.nan,
+        "wind_direction": np.nan,
+    }
+    air_prop = {
+        "T_avg": np.nan,
+        "rho_air": np.nan,
+        "q_avg": np.nan,
+        "p_avg": np.nan,
+        "e": np.nan,
+        "es": np.nan,
+        "RH": np.nan,
+        "theta_v_avg": np.nan,
+    }
+    foot = {"x10": np.nan, "x30": np.nan, "x50": np.nan, "x70": np.nan, "x90": np.nan}
+    gas_den_avg = {target_gas: np.nan, "H2O": np.nan, "CO2": np.nan}
+    itc = np.nan
+    sst = {"wT": np.nan, "wH2O": np.nan, "wCO2": np.nan, "w" + target_gas: np.nan}
+    nan_cosp = np.full((64,), np.nan)
+    cospectra = {
+        "wT": nan_cosp,
+        "wH2O": nan_cosp,
+        "wCO2": nan_cosp,
+        "w" + target_gas: nan_cosp,
+        "L": np.nan,
+        "u_star": np.nan,
+    }
+
+    return tur_flux, air_prop, gas_den_avg, cospectra, sst, itc, foot
+
+
+def viscosity_air(T, rho):
+    lambda0 = 1.512041288e-6  # Pa s K^(-1/2)
+    C = 120  # K
+    return T**1.5 / (T + C) * lambda0 / rho
+
+
+def footprint_kljun04(sigma_w, u_star, z, disp_h, rough_len):
+    """
+    Calculate foot print of eddy flux based on Kljun et al. 2004.
+    Parameters
+    ----------
+    sigma_w: float
+        Standard deviation of vertical wind.
+    u_star: float
+        u*
+    z: float
+        Measurement height.
+    disp_h: float
+        Displacement height.
+    rough_len:
+        Roughness length
+
+    Returns
+    -------
+    foot: dict
+        A dict containing x10, x30, x50, x70, x90.
+
+    """
+    zm = z - disp_h
+    af = 0.175
+    bb = 3.418
+    ac = 4.277
+    ad = 1.685
+    b = 3.69895
+    # TODO change d to roughness length
+    a = af / (bb - np.log(rough_len))
+    c = ac * (bb - np.log(rough_len))
+    d = ad * (bb - np.log(rough_len))
+
+    foot = {}
+    xstar = L_Kljun[10] * c - d  # 10% L
+    foot["x10"] = xstar * zm * (sigma_w / u_star) ** (-0.8)
+    xstar = L_Kljun[30] * c - d  # 10% L
+    foot["x30"] = xstar * zm * (sigma_w / u_star) ** (-0.8)
+    xstar = L_Kljun[50] * c - d  # 10% L
+    foot["x50"] = xstar * zm * (sigma_w / u_star) ** (-0.8)
+    xstar = L_Kljun[70] * c - d  # 10% L
+    foot["x70"] = xstar * zm * (sigma_w / u_star) ** (-0.8)
+    xstar = L_Kljun[90] * c - d  # 10% L
+    foot["x90"] = xstar * zm * (sigma_w / u_star) ** (-0.8)
+    return foot
+
+
+def footprint_KormannMeixner01(u_star, zL, WS, z, d, frac=0.7):
+    """
+    Calculates footprint using Kormann Meixner 2001.
+    Parameters
+    ----------
+    u_star: float
+        u*.
+    zL: float
+        z/L
+    WS: float
+        wind spped
+    z: float
+        sonic height.
+    d: float
+        displacement height.
+    Returns
+    -------
+    foot: dict
+        A dict containing x10, x30, x50, x70, x90
+    """
+    zm = z - d
+    if zL > 0:
+        phi_m = 1.0 + 5.0 * zL
+        phi_c = phi_m
+        psi_m = -5.0 * zL
+    else:
+        phi_m = (1.0 - 16.0 * zL) ** (-0.25)
+        phi_c = (1.0 - 16.0 * zL) ** -0.5
+        eta = (1.0 - 16.0 * zL) ** 0.25
+        psi_m = (
+            2.0 * np.log((1.0 + eta) / 2.0)
+            + np.log((1.0 + eta**2.0) / 2.0)
+            - 2.0 * np.arctan(eta)
+            + np.pi / 2.0
+        )
+    psi_m = -1.0 * psi_m
+    if zL > 0:
+        n = 1.0 / phi_m
+    else:
+        n = (1 - 24.0 * zL) / (1 - 16.0 * zL)
+
+    key = 0.4 * u_star * zm / (phi_c * zm**n)
+    m = u_star * phi_m / (0.4 * WS)
+    UU = WS / zm**m
+    r = 2.0 + m - n
+    mmu = (1.0 + m) / r
+    zeta = UU * zm**r / (r**2.0 * key)
+    int_foot = 0.0
+    foot = {}
+    i = 1.0
+    while (int_foot < frac) & (i < 10000):
+        int_foot += zeta**mmu * np.exp(-zeta / i) / (i ** (1 + mmu) * gamma(mmu))
+        i += 1
+    return i
+
+
+def new_footprint(sigma_w, u_star, z, disp_h, rough_len, L, WS):
+    zL = (z - disp_h) / L
+    if (u_star > 0.1) & (zL >= -200) & (zL <= 1):
+        return footprint_kljun04(sigma_w, u_star, z, disp_h, rough_len)["x70"]
+    else:
+        return footprint_KormannMeixner01(u_star, zL, WS, z, disp_h)
+
+
+# %%
+def model_spectral_ww(f, xi, z, d):
+    if xi > 0:
+        A = 0.838 + 1.172 * xi
+        return 1.0 / (A + 3.124 * A ** (-2.0 / 3.0) * f ** (5.0 / 3.0))
+    else:
+        chi = (-xi) ** (2.0 / 3)
+        return 2.0 / (1 + 5.3 * f ** (5.0 / 3)) + 32.0 * chi / (1 + 17.0 * f) ** (
+            5.0 / 3
+        )
+
+
+def model_spectral_uu(f, xi, u, n):
+    if xi > 0:
+        A = 0.2 * (0.838 + 1.172 * xi)
+        return f / (A + 3.124 * A ** (-2.0 / 3.0) * f ** (5.0 / 3.0))
+    else:
+        chi = (-xi) ** (2.0 / 3)
+        ni = n * 1e3 / u
+        return (
+            105 * f / (1 + 33 * f) ** (5.0 / 3)
+            + 0.5 * ni / (1 + 2.2 * ni ** (5.0 / 3)) * chi
+        )
+
+
+def model_spectral_ss(f, xi):
+    if xi > 0:
+        A = 0.0096 + 0.644 * xi**0.6
+        return 1.0 / (A + 3.124 * A ** (-2.0 / 3.0) * f ** (5.0 / 3.0))
+    else:
+        step_f = np.ones(len(f))
+        step_f[f < 0.15] = 0
+        return (1 - step_f) * 53.4 / (1 + 24.0 * f) ** (5.0 / 3.0) + step_f * 24.4 / (
+            1 + 12.5 * f
+        ) ** (5.0 / 3)
+
+
+def model_spectral_wu(f, xi):
+    if xi > 0:
+        n0 = 0.10 * (1 + 7.9 * xi) ** 0.75
+        return 0.88 / n0 / (1 + 1.5 * (f / n0) ** 2.1)
+    else:
+        return 14.0 / (1 + 9.6 * f) ** 2.4
+
+
+def model_spectral_ws(f, xi):
+    if xi > 0:
+        n0 = 0.23 * (1 + 6.4 * xi) ** 0.75
+        return 0.88 / n0 / (1 + 1.5 * (f / n0) ** 2.1)
+    else:
+        step_f = np.ones(len(f))
+        step_f[f < 1] = 0
+        return (1 - step_f) * 11.0 / (1 + 13.3 * f) ** (1.75) + step_f * 4.4 / (
+            1 + 3.8 * f
+        ) ** 2.4
+
+
+def T_w(n):
+    return (
+        2
+        / np.pi
+        / n
+        * (
+            1
+            + np.exp(-2 * np.pi * n) / 2
+            - 3 * (1 - np.exp(-2 * np.pi * n)) / 4 / np.pi / n
+        )
+    )
+
+
+def T_p_vertical(n):
+    return (
+        1.0
+        / 2.0
+        / np.pi
+        / n
+        * (
+            3.0
+            + np.exp(-2.0 * np.pi * n)
+            - 4.0 * (1.0 - np.exp(-2.0 * np.pi * n)) / 2.0 / np.pi / n
+        )
+    )
+
+
+def T_s(n):
+    return np.exp(-9.9 * n**1.5)
+
+
+def T_p_w_angle(n, theta):
+    T_list = []
+    for n_id in n:
+        int_func = (
+            lambda x: (
+                1.0 + ((x / n_id / np.pi - np.cos(theta)) / np.sin(theta)) ** 2.0
+            )
+            ** (-4.0 / 3)
+            * (np.sin(x) / x) ** 2.0
+        )
+        T_list.append(integrate.quad(int_func, -np.infty, np.infty)[0])
+
+    return np.array(T_list) * 0.142 / n / np.abs(np.sin(theta))
+
+
+def binned_ogive(f_bin, cosp_bin):
+    df = np.log10(f_bin[2]) - np.log10(f_bin[1])
+    ogive_bin = np.array([])
+    for idx in range(len(f_bin)):
+        ogive_bin = np.r_[
+            ogive_bin,
+            np.nansum(f_bin[:idx] * cosp_bin[:idx] * df) / np.log10(np.exp(1)),
+        ]
+    return ogive_bin
+
+
+def selfheating_S(T_a, U, SR, S, hr):
+    k_air = (26.1 - (T_a - 296.15) * 0.076) / 1e3
+    if (hr > 6) & (hr < 20):
+        T_bot = 2.8 + 0.9319 * (T_a - 273.15) + 0.0021 * SR - 0.334 * U
+        T_top = -0.1 + 0.9956 * (T_a - 273.15) + 0.0011 * SR - 0.022 * U
+        T_spar = 0.3 + 0.9993 * (T_a - 273.15) + 0.0006 * SR - 0.044 * U
+    else:
+        T_bot = 0.5 + 0.8840 * (T_a - 273.15) - 0.206 * U
+        T_top = -1.7 + 0.9840 * (T_a - 273.15) - 0.029 * U
+        T_spar = -2.1 + 0.9800 * (T_a - 273.15) + 0.026 * U
+
+    delta_bot = 0.004 * np.sqrt(0.069 / U) + 0.004
+    delta_top = 0.0028 * np.sqrt(0.0495 / U) + 0.00025 / U + 0.0045
+    delta_spar = 0.0058 * np.sqrt(0.005 / U)
+    S_bot = k_air * (T_bot - T_a + 273.15) / delta_bot
+    S_top = k_air * (0.0225 + delta_top) * (T_top - T_a + 273.15) / 0.0225 / delta_top
+    S_spar = (
+        k_air
+        * (T_spar - T_a + 273.15)
+        / 0.0025
+        / np.log((0.0025 + delta_spar) / 0.0025)
+    )
+
+    S_corrected = S + S_bot + S_top + 0.15 * S_spar
+    return S_corrected
+
+
+def WPL_H2O(E_0, S, rho_air, rho_v, T_a):
+    return (1 + 1.6077 * rho_v / (rho_air - rho_v)) * (
+        E_0 + S / rho_air / C_p * rho_v / T_a
+    )
+
+
+def WPL_gas(E, rho_air, rho_v, S, T_a, rho_c, F_0):
+
+    return (
+        F_0
+        + 1.6077 * E / rho_air * rho_c  # 水
+        + (1 + 1.6077 * rho_v / rho_air) * S / rho_air / C_p * rho_c / T_a  # 温度
+    )
+
+
+def mix_correction(rho_air, rho_v, S, T_a, rho_c, F_0, MT, E, MT_vx):
+
+    return F_0 + MT * S / C_p * rho_c / T_a + E * rho_c * MT_vx  # 温度
+
+
+def mix_correction_2(rho_air, S, T_a, rho_c, F_0, wk_rel, wx_h2o):
+    scale = rho_air * rho_c
+    return F_0 + scale * (wk_rel + S / rho_air / C_p / T_a + wx_h2o)
+
+
+def WPL_gas_burba(E, rho_air, rho_v, S, T_a, rho_c, F_0, k_mean, cov_wk, cov_wkc):
+    """
+    Calculate WPL and spectroscopic corrections as proposed by Burba et al. 2019
+    Parameters
+    ----------
+    E
+    rho_air
+    rho_v
+    S
+    T_a
+    rho_c
+    F_0
+    k_mean
+    cov_wk
+    cov_wkc
+
+    Returns
+    -------
+
+    """
+    return (
+        k_mean
+        * (
+            F_0
+            + 1.6077 * E / rho_air * rho_c
+            + (1 + 1.6077 * rho_v / rho_air) * S / rho_air / C_p * rho_c / T_a
+        )
+        + cov_wk * rho_c
+        + cov_wkc
+    )
+
+
+def allan_variance(data, sample_rate):
+    """
+    计算 Allan 方差（滑动窗口法，步长为采样间隔的一半）
+    :param data: 时间序列数据 (numpy array)
+    :param sample_rate: 采样频率 (Hz)
+    :return: taus, allan_vars (时间间隔和对应的 Allan 方差)
+    """
+    n = len(data)
+    max_tau = n // 2  # 最大窗口长度
+    taus = np.logspace(0, np.log10(max_tau), num=max_tau, dtype=int)  # 等比例间隔的窗口
+    allan_vars = []
+    taus = np.unique(taus)
+    for tau in taus:
+        m = tau  # 时间窗口大小
+        step = int(m // 1)  # 滑动窗口步长（采样间隔的一半）
+        if step < 1:
+            step = 1
+        # 确保窗口和步长有效
+        if (n - m) // (step + 0.0000000000000000001) < 1:
+            break
+
+        # 计算滑动窗口的平均值
+        avg = np.array([np.mean(data[i : i + m]) for i in range(0, n - m + 1, step)])
+
+        # 计算 Allan 方差
+        allan_var = 0.5 * np.mean(np.diff(avg) ** 2)
+        allan_vars.append(allan_var)
+
+    return taus / sample_rate, np.array(allan_vars)
+
+
+def main():
+    print("ECTool is a package for eddy covariance method.")
+
+
+main()
